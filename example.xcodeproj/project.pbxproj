@@ -12,6 +12,7 @@
 		B7C72F9B2C50988A00502F88 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C72F9A2C50988A00502F88 /* ContentView.swift */; };
 		B7C72F9D2C50989500502F88 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B7C72F9C2C50989500502F88 /* Assets.xcassets */; };
 		B7C72FA02C50989500502F88 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B7C72F9F2C50989500502F88 /* Preview Assets.xcassets */; };
+		B7D47A712C53490A00F5FC54 /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D47A702C53490A00F5FC54 /* OSLog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +22,7 @@
 		B7C72F9A2C50988A00502F88 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B7C72F9C2C50989500502F88 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B7C72F9F2C50989500502F88 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		B7D47A702C53490A00F5FC54 /* OSLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSLog.swift; sourceTree = "<group>"; };
 		CB70308372C0C893AEB9ACD8 /* Pods_example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1C09F527593FF8B92993ACA /* Pods-example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-example.release.xcconfig"; path = "Target Support Files/Pods-example/Pods-example.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -75,6 +77,7 @@
 		B7C72F972C50988A00502F88 /* example */ = {
 			isa = PBXGroup;
 			children = (
+				B7D47A6F2C5348D400F5FC54 /* Utils */,
 				B7C72F982C50988A00502F88 /* exampleApp.swift */,
 				B7C72F9A2C50988A00502F88 /* ContentView.swift */,
 				B7C72F9C2C50989500502F88 /* Assets.xcassets */,
@@ -89,6 +92,14 @@
 				B7C72F9F2C50989500502F88 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		B7D47A6F2C5348D400F5FC54 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				B7D47A702C53490A00F5FC54 /* OSLog.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -189,6 +200,7 @@
 			files = (
 				B7C72F9B2C50988A00502F88 /* ContentView.swift in Sources */,
 				B7C72F992C50988A00502F88 /* exampleApp.swift in Sources */,
+				B7D47A712C53490A00F5FC54 /* OSLog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
