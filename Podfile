@@ -6,5 +6,9 @@ target 'example' do
   use_frameworks!
 
   # Pods for example
+  pod 'CryptoSwift', '~> 1.8.3'
+
+  pod 'FirebaseAnalytics'
+  pod 'FirebaseMessaging'
 
 end

@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		7279DAB32A50E3700A89C231 /* Pods_example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB70308372C0C893AEB9ACD8 /* Pods_example.framework */; };
-		B7C72F992C50988A00502F88 /* exampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C72F982C50988A00502F88 /* exampleApp.swift */; };
+		B7B572E02C61B1F900615D2C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B7B572DF2C61B1F900615D2C /* GoogleService-Info.plist */; };
+		B7B572E22C61B3BF00615D2C /* Permission.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B572E12C61B3BF00615D2C /* Permission.swift */; };
+		B7C72F992C50988A00502F88 /* ExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C72F982C50988A00502F88 /* ExampleApp.swift */; };
 		B7C72F9B2C50988A00502F88 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C72F9A2C50988A00502F88 /* ContentView.swift */; };
 		B7C72F9D2C50989500502F88 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B7C72F9C2C50989500502F88 /* Assets.xcassets */; };
 		B7C72FA02C50989500502F88 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B7C72F9F2C50989500502F88 /* Preview Assets.xcassets */; };
@@ -17,8 +19,12 @@
 
 /* Begin PBXFileReference section */
 		01A5829D8F3E30DA17798C6D /* Pods-example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-example.debug.xcconfig"; path = "Target Support Files/Pods-example/Pods-example.debug.xcconfig"; sourceTree = "<group>"; };
+		B7B572DD2C61ABCB00615D2C /* example.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = example.entitlements; sourceTree = "<group>"; };
+		B7B572DE2C61AC0500615D2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B7B572DF2C61B1F900615D2C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		B7B572E12C61B3BF00615D2C /* Permission.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Permission.swift; sourceTree = "<group>"; };
 		B7C72F952C50988A00502F88 /* example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = example.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B7C72F982C50988A00502F88 /* exampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = exampleApp.swift; sourceTree = "<group>"; };
+		B7C72F982C50988A00502F88 /* ExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleApp.swift; sourceTree = "<group>"; };
 		B7C72F9A2C50988A00502F88 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B7C72F9C2C50989500502F88 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B7C72F9F2C50989500502F88 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -77,8 +83,11 @@
 		B7C72F972C50988A00502F88 /* example */ = {
 			isa = PBXGroup;
 			children = (
+				B7B572DF2C61B1F900615D2C /* GoogleService-Info.plist */,
+				B7B572DE2C61AC0500615D2C /* Info.plist */,
+				B7B572DD2C61ABCB00615D2C /* example.entitlements */,
 				B7D47A6F2C5348D400F5FC54 /* Utils */,
-				B7C72F982C50988A00502F88 /* exampleApp.swift */,
+				B7C72F982C50988A00502F88 /* ExampleApp.swift */,
 				B7C72F9A2C50988A00502F88 /* ContentView.swift */,
 				B7C72F9C2C50989500502F88 /* Assets.xcassets */,
 				B7C72F9E2C50989500502F88 /* Preview Content */,
@@ -98,6 +107,7 @@
 			isa = PBXGroup;
 			children = (
 				B7D47A702C53490A00F5FC54 /* OSLog.swift */,
+				B7B572E12C61B3BF00615D2C /* Permission.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -113,6 +123,7 @@
 				B7C72F912C50988A00502F88 /* Sources */,
 				B7C72F922C50988A00502F88 /* Frameworks */,
 				B7C72F932C50988A00502F88 /* Resources */,
+				D305287EBB828DFE631A02CA /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -163,6 +174,7 @@
 			files = (
 				B7C72FA02C50989500502F88 /* Preview Assets.xcassets in Resources */,
 				B7C72F9D2C50989500502F88 /* Assets.xcassets in Resources */,
+				B7B572E02C61B1F900615D2C /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,6 +203,23 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		D305287EBB828DFE631A02CA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-example/Pods-example-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-example/Pods-example-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-example/Pods-example-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -198,8 +227,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B7B572E22C61B3BF00615D2C /* Permission.swift in Sources */,
 				B7C72F9B2C50988A00502F88 /* ContentView.swift in Sources */,
-				B7C72F992C50988A00502F88 /* exampleApp.swift in Sources */,
+				B7C72F992C50988A00502F88 /* ExampleApp.swift in Sources */,
 				B7D47A712C53490A00F5FC54 /* OSLog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -332,12 +362,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = example/example.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"example/Preview Content\"";
 				DEVELOPMENT_TEAM = G9MQRF2U8G;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = example/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -363,12 +395,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = example/example.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"example/Preview Content\"";
 				DEVELOPMENT_TEAM = G9MQRF2U8G;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = example/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
