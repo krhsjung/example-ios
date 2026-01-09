@@ -22,13 +22,14 @@ enum APIEndpoint {
     case logOut
     case signUp
     case oauth(_ snsProvider: SnsProvider)
+    case appleSignIn
 
     // User
     case me
 
     // Custom endpoint
     case custom(_ path: String)
-    
+
     var path: String {
         switch self {
         // Auth
@@ -42,11 +43,13 @@ enum APIEndpoint {
             return "/user"
         case .oauth(let snsProvider):
             return "/auth/\(snsProvider.rawValue)?flow=ios&prompt=select_account"
+        case .appleSignIn:
+            return "/auth/apple/native"
 
         // User
         case .me:
             return "/auth/me"
-            
+
         // Custom
         case .custom(let path):
             return path

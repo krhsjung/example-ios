@@ -8,12 +8,14 @@
 
 import Foundation
 import CryptoKit
+import AuthenticationServices
 
 // MARK: - Auth Service Protocol
 protocol AuthServiceProtocol {
-    func logIn(request: LogInRequest) async throws -> User
-    func exchange(_ code: String) async throws -> User
-    func signUp(request: SignUpRequest) async throws -> User
+    func logIn(_ request: LogInRequest) async throws -> User
+    func exchange(_ request: ExchangeRequest) async throws -> User
+    func appleSignIn(_ request: AppleSignInRequest) async throws -> User
+    func signUp(_ request: SignUpRequest) async throws -> User
     func me() async throws -> User
     func logOut() async throws
 }
@@ -28,7 +30,7 @@ final class AuthService: AuthServiceProtocol {
         self.networkManager = networkManager
     }
 
-    func logIn(request: LogInRequest) async throws -> User {
+    func logIn(_ request: LogInRequest) async throws -> User {
         
         // 해싱된 비밀번호로 새로운 요청 생성
         let hashedRequest = LogInRequest(
@@ -44,15 +46,23 @@ final class AuthService: AuthServiceProtocol {
         )
     }
     
-    func exchange(_ code: String) async throws -> User {
+    func exchange(_ request: ExchangeRequest) async throws -> User {
         return try await networkManager.post(
             endpoint: .exchange,
-            body: ExchangeRequest(code: code),
+            body: request,
+            headers: nil
+        )
+    }
+    
+    func appleSignIn(_ request: AppleSignInRequest) async throws -> User {
+        return try await networkManager.post(
+            endpoint: .appleSignIn,
+            body: request,
             headers: nil
         )
     }
 
-    func signUp(request: SignUpRequest) async throws -> User {
+    func signUp(_ request: SignUpRequest) async throws -> User {
         
         // 해싱된 비밀번호로 새로운 요청 생성
         let hashedRequest = SignUpRequest(
@@ -83,7 +93,7 @@ final class AuthService: AuthServiceProtocol {
             headers: nil
         )
     }
-    
+
     // MARK: - Private Methods
     
     /// 비밀번호를 SHA-512로 해싱

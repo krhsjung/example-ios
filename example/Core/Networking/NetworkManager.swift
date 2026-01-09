@@ -45,7 +45,7 @@ protocol NetworkManagerProtocol {
         body: Encodable?,
         headers: [String: String]?
     ) async throws -> T
-    
+
     func put<T: Decodable>(
         endpoint: APIEndpoint,
         body: Encodable?,
@@ -116,13 +116,13 @@ final class NetworkManager: NetworkManagerProtocol {
         configuration.timeoutIntervalForResource = APIConfiguration.timeout
         self.session = URLSession(configuration: configuration)
         
-        // Encoder 설정
+        // Encoder 설정 (camelCase 유지, 필요시 CodingKeys로 snake_case 지정)
         self.encoder = JSONEncoder()
-        self.encoder.keyEncodingStrategy = .convertToSnakeCase
-        
-        // Decoder 설정
+        // self.encoder.keyEncodingStrategy = .convertToSnakeCase
+
+        // Decoder 설정 (camelCase 유지, 필요시 CodingKeys로 snake_case 매핑)
         self.decoder = JSONDecoder()
-        self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // self.decoder.keyDecodingStrategy = .convertFromSnakeCase
     }
     
     // MARK: - Public Methods
@@ -218,7 +218,7 @@ final class NetworkManager: NetworkManagerProtocol {
             throw NetworkError.decodingError(error)
         }
     }
-    
+
     /// Void 반환 요청 (응답 body가 없는 경우)
     func requestVoid(
         endpoint: APIEndpoint,
@@ -350,7 +350,7 @@ extension NetworkManager {
             headers: headers
         )
     }
-    
+
     /// PUT 요청
     func put<T: Decodable>(
         endpoint: APIEndpoint,

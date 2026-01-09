@@ -38,6 +38,19 @@ struct SocialLoginButtonsView: View {
             ) {
                 onSnsLogin(.apple)
             }
+            
+            ExampleButton(
+                title: Localized.Auth.oauthApple + "(native)",
+                icon: "apple",
+                backgroundColor: .snsButtonBackground,
+                textColor: .black,
+                borderColor: .borderPrimary,
+                horizontalPadding: 20,
+                minHeight: 36,
+                maxHeight: 36
+            ) {
+                onSnsLogin(.native)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }

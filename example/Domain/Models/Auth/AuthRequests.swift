@@ -53,3 +53,16 @@ struct SignUpRequest: Codable {
 struct ExchangeRequest: Codable {
     let code: String
 }
+
+// MARK: - Apple Sign In Request
+struct AppleSignInRequest: Codable {
+    let identityToken: String
+    let user: String
+    let email: String?
+    let fullName: FullName?
+
+    struct FullName: Codable {
+        let givenName: String?
+        let familyName: String?
+    }
+}

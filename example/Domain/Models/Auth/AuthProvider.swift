@@ -13,6 +13,7 @@ import Foundation
 enum SnsProvider: String, Codable {
     case google = "google"
     case apple = "apple"
+    case native = "native"
 }
 
 // MARK: - Login Provider
