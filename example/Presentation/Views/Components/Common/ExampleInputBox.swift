@@ -26,7 +26,7 @@ struct ExampleInputBox: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(red: 0.5, green: 0.21, blue: 0.14).opacity(0.09))
+        .background(Color.inputBoxBackground)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -107,7 +107,7 @@ struct ExampleInputBoxWithPlaceholder: View {
                 if text.isEmpty {
                     Text(placeholder)
                         .font(.system(size: 15))
-                        .foregroundColor(Color(red: 0.18, green: 0.1, blue: 0.08).opacity(0.4))
+                        .foregroundColor(.placeholderColor)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                 } else {
                     SecureField("", text: $text)
@@ -120,7 +120,7 @@ struct ExampleInputBoxWithPlaceholder: View {
                     if text.isEmpty {
                         Text(placeholder)
                             .font(.system(size: 15))
-                            .foregroundColor(Color(red: 0.18, green: 0.1, blue: 0.08).opacity(0.4))
+                            .foregroundColor(.placeholderColor)
                     }
                     TextField("", text: $text)
                         .font(.system(size: 15))
@@ -132,7 +132,7 @@ struct ExampleInputBoxWithPlaceholder: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(red: 0.5, green: 0.21, blue: 0.14).opacity(0.09))
+        .background(Color.inputBoxBackground)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)

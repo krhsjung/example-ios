@@ -27,4 +27,8 @@ extension Color {
     
     // Divider Colors
     static let dividerLine = Color(red: 0.43, green: 0.31, blue: 0.29).opacity(0.2)
+
+    // Input Box Colors
+    static let inputBoxBackground = Color(red: 0.5, green: 0.21, blue: 0.14).opacity(0.09)
+    static let placeholderColor = Color(red: 0.18, green: 0.1, blue: 0.08).opacity(0.4)
 }
