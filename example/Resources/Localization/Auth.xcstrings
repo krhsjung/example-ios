@@ -171,6 +171,23 @@
         }
       }
     },
+    "signup_agree_to_terms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I agree to the terms and conditions"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "이용약관에 동의합니다"
+          }
+        }
+      }
+    },
     "signup_continue_with" : {
       "extractionState" : "manual",
       "localizations" : {

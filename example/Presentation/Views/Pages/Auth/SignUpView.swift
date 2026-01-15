@@ -103,48 +103,16 @@ struct SignUpFormView: View {
             ExampleInputBox(placeholder: Localized.Auth.placeholderNamePlaceholder, text: $viewModel.name)
             
             // 이용약관 동의 체크박스
-            TermsAgreementCheckbox(isAgreed: $viewModel.isAgreeToTerms)
+            ExampleCheckbox(label: Localized.Auth.signupAgreeToTerms, isChecked: $viewModel.isAgreeToTerms)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         
-        // Button 영역
-        VStack(alignment: .leading, spacing: 18) {
-            // 회원가입 버튼 (폼 유효성 검사에 따라 활성화/비활성화)
-            ExampleButton(title: Localized.Common.signup) {
-                viewModel.signUp()
-            }
-            .disabled(!viewModel.isFormValid) // 폼이 유효하지 않으면 비활성화
-            .opacity(viewModel.isFormValid ? 1.0 : 0.5) // 비활성화 시 투명도 조절
+        // 회원가입 버튼
+        ExampleButton(title: Localized.Common.signup) {
+            viewModel.signUp()
         }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-    }
-}
-
-// MARK: - Terms Agreement Checkbox
-/// 이용약관 동의 체크박스
-/// 사용자가 약관에 동의했는지 표시하고 토글할 수 있는 UI 제공
-struct TermsAgreementCheckbox: View {
-    @Binding var isAgreed: Bool
-    
-    var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            // 체크박스 버튼
-            Button(action: {
-                isAgreed.toggle() // 동의 상태 토글
-            }) {
-                // 동의 여부에 따라 체크된 아이콘 또는 빈 사각형 표시
-                Image(systemName: isAgreed ? "checkmark.square.fill" : "square")
-                    .resizable()
-                    .frame(width: 16, height: 16)
-                    .foregroundColor(isAgreed ? .brand : .textSecondary) // 동의 시 브랜드 컬러, 미동의 시 회색
-            }
-            
-            // 약관 동의 텍스트
-            Text(Localized.Auth.signupContinueWith)
-                .font(.system(size: 13))
-                .foregroundColor(.textSecondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .disabled(!viewModel.isFormValid) // 폼이 유효하지 않으면 비활성화
+        .opacity(viewModel.isFormValid ? 1.0 : 0.5) // 비활성화 시 투명도 조절
     }
 }
 
