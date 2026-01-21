@@ -17,6 +17,7 @@ enum NetworkError: LocalizedError {
     case serverError(statusCode: Int, errorResponse: ErrorResponse?)
     case unknown(Error)
     case custom(String)
+    case cancelled
     
     var errorDescription: String? {
         switch self {
@@ -38,7 +39,15 @@ enum NetworkError: LocalizedError {
             return "\(error.localizedDescription)"
         case .custom(let message):
             return message
+        case .cancelled:
+            return Localized.Error.errorCancelled
         }
+    }
+
+    /// 취소된 요청인지 확인
+    var isCancelled: Bool {
+        if case .cancelled = self { return true }
+        return false
     }
     
     /// 서버에서 제공한 원본 메시지 (디버깅용)

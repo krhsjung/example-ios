@@ -12,8 +12,8 @@ struct ExampleButton: View {
     let title: String
     var icon: String? = nil
     var iconSpacing: CGFloat = 10
-    var backgroundColor: Color = .primaryButton
-    var textColor: Color = .textBlack
+    var backgroundColor: Color = AppColor.primaryButton
+    var textColor: Color = AppColor.textBlack
     var borderColor: Color? = nil
     var borderWidth: CGFloat = 1.5
     var cornerRadius: CGFloat = 16
@@ -35,7 +35,7 @@ struct ExampleButton: View {
                     .font(.system(size: 15))
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(textColor)
+                    .foregroundStyle(textColor)
             }
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
@@ -76,23 +76,23 @@ struct ExampleButton: View {
         ExampleButton(
             title: "Continue with Google",
             icon: "google",
-            backgroundColor: .snsButtonBackground,
+            backgroundColor: AppColor.snsButtonBackground,
             textColor: .black,
-            borderColor: .borderPrimary,
+            borderColor: AppColor.borderPrimary,
             horizontalPadding: 20,
             minHeight: 36,
             maxHeight: 36
         ) {
             print("Google login tapped")
         }
-        
+
         // Apple SNS 버튼 (trailing closure)
         ExampleButton(
             title: "Continue with Apple",
             icon: "apple",
-            backgroundColor: .snsButtonBackground,
+            backgroundColor: AppColor.snsButtonBackground,
             textColor: .black,
-            borderColor: .borderPrimary,
+            borderColor: AppColor.borderPrimary,
             horizontalPadding: 20,
             minHeight: 36,
             maxHeight: 36

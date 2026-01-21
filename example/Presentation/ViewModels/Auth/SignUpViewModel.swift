@@ -7,26 +7,50 @@
 //
 
 import SwiftUI
-import Combine
+import Observation
 
+/// 회원가입 화면의 ViewModel
+///
+/// 기능:
+/// - 이메일/비밀번호 회원가입
+/// - SNS 로그인 (부모 클래스에서 상속)
+/// - 폼 유효성 검사
 @MainActor
+@Observable
 final class SignUpViewModel: BaseAuthViewModel {
-    // MARK: - Published Properties
-    #if DEBUG
-    @Published var email: String = "test@test.com"
-    @Published var password: String = "Test2022@!"
-    @Published var confirmPassword: String = "Test2022@!"
-    @Published var name: String = "Tester"
-    @Published var isAgreeToTerms: Bool = true
-    #else
-    @Published var email: String = ""
-    @Published var password: String = ""
-    @Published var confirmPassword: String = ""
-    @Published var name: String = ""
-    @Published var isAgreeToTerms: Bool = false
-    #endif
+    // MARK: - Observable Properties
+
+    /// 이메일 입력값
+    var email: String = ""
+
+    /// 비밀번호 입력값
+    var password: String = ""
+
+    /// 비밀번호 확인 입력값
+    var confirmPassword: String = ""
+
+    /// 이름 입력값
+    var name: String = ""
+
+    /// 이용약관 동의 여부
+    var isAgreeToTerms: Bool = false
+
+    // MARK: - Initialization
+
+    override init() {
+        super.init()
+        #if DEBUG
+        self.email = TestFixtures.Auth.email
+        self.password = TestFixtures.Auth.password
+        self.confirmPassword = TestFixtures.Auth.password
+        self.name = TestFixtures.Auth.name
+        self.isAgreeToTerms = true
+        #endif
+    }
 
     // MARK: - Computed Properties
+
+    /// 폼 입력 완료 여부 (모든 필드가 채워졌는지 확인)
     var isFormValid: Bool {
         !email.isEmpty &&
         !password.isEmpty &&

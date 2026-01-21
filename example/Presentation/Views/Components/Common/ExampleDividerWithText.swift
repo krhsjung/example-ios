@@ -17,8 +17,8 @@ struct ExampleDividerWithText: View {
     
     init(
         text: String,
-        textColor: Color = .textSecondary,
-        lineColor: Color = .dividerLine,
+        textColor: Color = AppColor.textSecondary,
+        lineColor: Color = AppColor.dividerLine,
         lineHeight: CGFloat = 1.5
     ) {
         self.text = text
@@ -35,7 +35,7 @@ struct ExampleDividerWithText: View {
 
             Text(text)
                 .font(.system(size: 12))
-                .foregroundColor(textColor)
+                .foregroundStyle(textColor)
 
             Rectangle()
                 .fill(lineColor)

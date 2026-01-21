@@ -10,46 +10,22 @@ import SwiftUI
 
 struct SocialLoginButtonsView: View {
     let onSnsLogin: (_ snsProvider: SnsProvider) -> Void
-    
+
     var body: some View {
         VStack(alignment: .center, spacing: 8) {
-            ExampleButton(
-                title: Localized.Auth.oauthGoogle,
-                icon: "google",
-                backgroundColor: .snsButtonBackground,
-                textColor: .black,
-                borderColor: .borderPrimary,
-                horizontalPadding: 20,
-                minHeight: 36,
-                maxHeight: 36
-            ) {
-                onSnsLogin(.google)
-            }
-
-            ExampleButton(
-                title: Localized.Auth.oauthApple,
-                icon: "apple",
-                backgroundColor: .snsButtonBackground,
-                textColor: .black,
-                borderColor: .borderPrimary,
-                horizontalPadding: 20,
-                minHeight: 36,
-                maxHeight: 36
-            ) {
-                onSnsLogin(.apple)
-            }
-            
-            ExampleButton(
-                title: Localized.Auth.oauthApple + "(native)",
-                icon: "apple",
-                backgroundColor: .snsButtonBackground,
-                textColor: .black,
-                borderColor: .borderPrimary,
-                horizontalPadding: 20,
-                minHeight: 36,
-                maxHeight: 36
-            ) {
-                onSnsLogin(.native)
+            ForEach(SnsProvider.allCases, id: \.self) { provider in
+                ExampleButton(
+                    title: provider.title,
+                    icon: provider.icon,
+                    backgroundColor: AppColor.snsButtonBackground,
+                    textColor: .black,
+                    borderColor: AppColor.borderPrimary,
+                    horizontalPadding: 20,
+                    minHeight: 36,
+                    maxHeight: 36
+                ) {
+                    onSnsLogin(provider)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)

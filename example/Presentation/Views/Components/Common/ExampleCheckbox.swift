@@ -19,12 +19,12 @@ struct ExampleCheckbox: View {
                 Image(systemName: isChecked ? "checkmark.square.fill" : "square")
                     .resizable()
                     .frame(width: 16, height: 16)
-                    .foregroundColor(isChecked ? .brand : .textSecondary)
+                    .foregroundStyle(isChecked ? AppColor.brand : AppColor.textSecondary)
             }
 
             Text(label)
                 .font(.system(size: 13))
-                .foregroundColor(.textSecondary)
+                .foregroundStyle(AppColor.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

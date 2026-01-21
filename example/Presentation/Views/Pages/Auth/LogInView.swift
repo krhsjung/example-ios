@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct LogInView: View {
-    @StateObject private var viewModel = LogInViewModel()
+    @State private var viewModel = LogInViewModel()
 
     var body: some View {
         NavigationStack {
@@ -34,6 +34,9 @@ struct LogInView: View {
                 message: viewModel.errorMessage,
                 onDismiss: viewModel.clearError
             )
+            .onDisappear {
+                viewModel.cancelCurrentTask()
+            }
         }
     }
 }
@@ -45,7 +48,7 @@ struct LogInHeaderView: View {
             Text(Localized.Common.applicationName)
                 .font(.system(size: 28))
                 .fontWeight(.bold)
-                .foregroundColor(.brand)
+                .foregroundStyle(AppColor.brand)
         }
         .padding(.horizontal, 0)
         .padding(.vertical, 18)
@@ -55,7 +58,7 @@ struct LogInHeaderView: View {
 
 // MARK: - Container
 struct LogInContainerView: View {
-    @ObservedObject var viewModel: LogInViewModel
+    @Bindable var viewModel: LogInViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
@@ -77,11 +80,11 @@ struct LogInDescriptionView: View {
             Text(Localized.Auth.loginTitle)
                 .font(.system(size: 28))
                 .fontWeight(.bold)
-                .foregroundColor(.textPrimary)
+                .foregroundStyle(AppColor.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             Text(Localized.Auth.loginSubtitle)
                 .font(.system(size: 15))
-                .foregroundColor(.textPrimary)
+                .foregroundStyle(AppColor.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -90,7 +93,7 @@ struct LogInDescriptionView: View {
 
 // MARK: - Form
 struct LogInFormView: View {
-    @ObservedObject var viewModel: LogInViewModel
+    @Bindable var viewModel: LogInViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
@@ -122,7 +125,7 @@ struct LogInFooterView: View {
     }
 }
 
+// MARK: - Preview
 #Preview {
     LogInView()
-        .environmentObject(AuthManager.shared)
 }

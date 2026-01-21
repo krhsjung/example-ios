@@ -8,30 +8,44 @@
 
 import Foundation
 
-// MARK: - Login Form Data
-struct LogInFormData {
-    var email: String
-    var password: String
+// MARK: - Validatable Protocol
+/// 폼 검증 기능을 제공하는 프로토콜
+protocol Validatable {
+    /// 모든 검증 결과를 배열로 반환
+    var validations: [ValidationResult] { get }
+}
 
-    func validateEmail() -> ValidationResult {
-        return AuthValidator.validateEmail(email)
-    }
-
-    func validatePassword() -> ValidationResult {
-        return AuthValidator.validatePassword(password)
-    }
-
+extension Validatable {
+    /// 모든 검증을 수행하고 첫 번째 실패를 반환
     func validateAll() -> ValidationResult {
-        let validations: [ValidationResult] = [
-            validateEmail(),
-            validatePassword()
-        ]
-
         if let failure = validations.first(where: { !$0.isValid }) {
             return failure
         }
-
         return .success
+    }
+}
+
+// MARK: - Login Form Data
+struct LogInFormData: Validatable {
+    var email: String
+    var password: String
+    private let validator: AuthValidating
+
+    init(
+        email: String,
+        password: String,
+        validator: AuthValidating = AuthValidator.shared
+    ) {
+        self.email = email
+        self.password = password
+        self.validator = validator
+    }
+
+    var validations: [ValidationResult] {
+        [
+            validator.validateEmail(email),
+            validator.validatePassword(password)
+        ]
     }
 
     func toLogInRequest() -> LogInRequest {
@@ -43,42 +57,37 @@ struct LogInFormData {
 }
 
 // MARK: - Sign Up Form Data
-struct SignUpFormData {
+struct SignUpFormData: Validatable {
     var email: String
     var password: String
     var confirmPassword: String
     var name: String
     var isAgreeToTerms: Bool
+    private let validator: AuthValidating
 
-    func validateEmail() -> ValidationResult {
-        return AuthValidator.validateEmail(email)
+    init(
+        email: String,
+        password: String,
+        confirmPassword: String,
+        name: String,
+        isAgreeToTerms: Bool,
+        validator: AuthValidating = AuthValidator.shared
+    ) {
+        self.email = email
+        self.password = password
+        self.confirmPassword = confirmPassword
+        self.name = name
+        self.isAgreeToTerms = isAgreeToTerms
+        self.validator = validator
     }
 
-    func validatePassword() -> ValidationResult {
-        return AuthValidator.validatePassword(password)
-    }
-
-    func validateConfirmPassword() -> ValidationResult {
-        return AuthValidator.validatePasswordConfirmation(password: password, confirmPassword: confirmPassword)
-    }
-
-    func validateName() -> ValidationResult {
-        return AuthValidator.validateName(name)
-    }
-
-    func validateAll() -> ValidationResult {
-        let validations: [ValidationResult] = [
-            validateEmail(),
-            validatePassword(),
-            validateConfirmPassword(),
-            validateName(),
+    var validations: [ValidationResult] {
+        [
+            validator.validateEmail(email),
+            validator.validatePassword(password),
+            validator.validatePasswordConfirmation(password: password, confirmPassword: confirmPassword),
+            validator.validateName(name)
         ]
-
-        if let failure = validations.first(where: { !$0.isValid }) {
-            return failure
-        }
-
-        return .success
     }
 
     func toSignUpRequest() -> SignUpRequest {

@@ -32,7 +32,7 @@ struct MainView: View {
 
 // MARK: - First Tab
 struct FirstTabView: View {
-    @EnvironmentObject private var authManager: AuthManager
+    private var authManager = AuthManager.shared
 
     @State private var isLoading = false
     @State private var showError = false
@@ -78,5 +78,4 @@ struct SecondTabView: View {
 
 #Preview {
     MainView()
-        .environmentObject(AuthManager.shared)
 }

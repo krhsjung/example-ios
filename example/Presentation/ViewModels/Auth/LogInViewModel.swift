@@ -7,19 +7,37 @@
 //
 
 import SwiftUI
-import Combine
+import Observation
 
+/// 로그인 화면의 ViewModel
+///
+/// 기능:
+/// - 이메일/비밀번호 로그인
+/// - SNS 로그인 (부모 클래스에서 상속)
+/// - 회원가입 화면 네비게이션
 @MainActor
+@Observable
 final class LogInViewModel: BaseAuthViewModel {
-    // MARK: - Published Properties
-    #if DEBUG
-    @Published var email: String = "test@test.com"
-    @Published var password: String = "Test2022@!"
-    #else
-    @Published var email: String = ""
-    @Published var password: String = ""
-    #endif
-    @Published var isNavigateToSignUp: Bool = false
+    // MARK: - Observable Properties
+
+    /// 이메일 입력값
+    var email: String = ""
+
+    /// 비밀번호 입력값
+    var password: String = ""
+
+    /// 회원가입 화면 이동 플래그
+    var isNavigateToSignUp: Bool = false
+
+    // MARK: - Initialization
+
+    override init() {
+        super.init()
+        #if DEBUG
+        self.email = TestFixtures.Auth.email
+        self.password = TestFixtures.Auth.password
+        #endif
+    }
 
     // MARK: - Private Properties
     private var formData: LogInFormData {

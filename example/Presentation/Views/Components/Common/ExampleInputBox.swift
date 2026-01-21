@@ -19,14 +19,14 @@ struct ExampleInputBox: View {
             } else {
                 TextField(placeholder, text: $text)
                     .font(.system(size: 15))
-                    .foregroundColor(.textPrimary)
+                    .foregroundStyle(AppColor.textPrimary)
             }
         }
         .frame(height: 20)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.inputBoxBackground)
+        .background(AppColor.inputBoxBackground)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -107,12 +107,12 @@ struct ExampleInputBoxWithPlaceholder: View {
                 if text.isEmpty {
                     Text(placeholder)
                         .font(.system(size: 15))
-                        .foregroundColor(.placeholderColor)
+                        .foregroundStyle(AppColor.placeholderColor)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                 } else {
                     SecureField("", text: $text)
                         .font(.system(size: 15))
-                        .foregroundColor(.textPrimary)
+                        .foregroundStyle(AppColor.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             } else {
@@ -120,11 +120,11 @@ struct ExampleInputBoxWithPlaceholder: View {
                     if text.isEmpty {
                         Text(placeholder)
                             .font(.system(size: 15))
-                            .foregroundColor(.placeholderColor)
+                            .foregroundStyle(AppColor.placeholderColor)
                     }
                     TextField("", text: $text)
                         .font(.system(size: 15))
-                        .foregroundColor(.textPrimary)
+                        .foregroundStyle(AppColor.textPrimary)
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             }
@@ -132,7 +132,7 @@ struct ExampleInputBoxWithPlaceholder: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.inputBoxBackground)
+        .background(AppColor.inputBoxBackground)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)

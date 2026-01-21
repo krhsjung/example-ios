@@ -12,7 +12,7 @@ import SwiftUI
 /// 이메일/비밀번호 기반 회원가입 및 소셜 로그인(Google, Apple)을 제공
 struct SignUpView: View {
     /// 회원가입 로직을 처리하는 ViewModel
-    @StateObject private var viewModel = SignUpViewModel()
+    @State private var viewModel = SignUpViewModel()
     /// 현재 뷰를 닫기 위한 환경 변수
     @Environment(\.dismiss) private var dismiss
 
@@ -25,18 +25,24 @@ struct SignUpView: View {
                 SignUpContainerView(viewModel: viewModel)
             },
             footer: {
-                SignUpFooterView(dismiss: dismiss)
+                SignUpFooterView {
+                    viewModel.cancelCurrentTask()
+                    dismiss()
+                }
             }
         )
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .exampleLoadingOverlay(isLoading: viewModel.isLoading)
         .exampleErrorAlert(
             isPresented: $viewModel.showError,
             message: viewModel.errorMessage,
             onDismiss: viewModel.clearError
         )
+        .onDisappear {
+            viewModel.cancelCurrentTask()
+        }
     }
 }
 
@@ -50,11 +56,11 @@ struct SignUpHeaderView: View {
             Text(Localized.Auth.signupTitle)
                 .font(.system(size: 28))
                 .fontWeight(.bold)
-                .foregroundColor(.textPrimary)
+                .foregroundStyle(AppColor.textPrimary)
             // 서브 타이틀 (설명 텍스트)
             Text(Localized.Auth.signupSubtitle)
                 .font(.system(size: 15))
-                .foregroundColor(.textPrimary)
+                .foregroundStyle(AppColor.textPrimary)
         }
         .frame(maxWidth: .infinity, alignment: .center) // 전체 너비를 차지하며 중앙 정렬
         .padding(.top, 30)
@@ -65,7 +71,7 @@ struct SignUpHeaderView: View {
 /// 회원가입 화면의 메인 컨텐츠 영역
 /// 회원가입 폼과 소셜 로그인 버튼들을 포함
 struct SignUpContainerView: View {
-    @ObservedObject var viewModel: SignUpViewModel
+    @Bindable var viewModel: SignUpViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 32) {
@@ -89,7 +95,7 @@ struct SignUpContainerView: View {
 /// 회원가입 입력 폼
 /// 이메일, 비밀번호, 비밀번호 확인, 이름 입력 필드와 약관 동의 체크박스, 회원가입 버튼 포함
 struct SignUpFormView: View {
-    @ObservedObject var viewModel: SignUpViewModel
+    @Bindable var viewModel: SignUpViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -120,24 +126,24 @@ struct SignUpFormView: View {
 /// 회원가입 화면 하단 푸터
 /// 로그인 화면으로 돌아가기 버튼 제공
 struct SignUpFooterView: View {
-    let dismiss: DismissAction
+    let onBack: () -> Void
 
     var body: some View {
         HStack(alignment: .center, spacing: 4) {
             // 로그인 화면으로 돌아가기 버튼
-            Button(action: { dismiss() }) {
+            Button(action: onBack) {
                 Text(Localized.Common.login)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.brand)
+                    .foregroundStyle(AppColor.brand)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40)
     }
 }
 
+// MARK: - Preview
 #Preview {
     NavigationStack {
         SignUpView()
     }
-    .environmentObject(AuthManager.shared)
 }
