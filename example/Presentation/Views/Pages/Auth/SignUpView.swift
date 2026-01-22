@@ -100,13 +100,13 @@ struct SignUpFormView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // 이메일 입력
-            ExampleInputBox(placeholder: Localized.Auth.placeholderEmailPlaceholder, text: $viewModel.email)
+            ExampleInputBox(placeholder: Localized.Auth.placeholderEmail, text: $viewModel.email)
             // 비밀번호 입력 (보안 필드)
-            ExampleInputBox(placeholder: Localized.Auth.placeholderPasswordPlaceholder, text: $viewModel.password, isSecure: true)
+            ExampleInputBox(placeholder: Localized.Auth.placeholderPassword, text: $viewModel.password, isSecure: true)
             // 비밀번호 확인 입력 (보안 필드)
-            ExampleInputBox(placeholder: Localized.Auth.placeholderConfirmPasswordPlaceholder, text: $viewModel.confirmPassword, isSecure: true)
+            ExampleInputBox(placeholder: Localized.Auth.placeholderConfirmPassword, text: $viewModel.confirmPassword, isSecure: true)
             // 이름 입력
-            ExampleInputBox(placeholder: Localized.Auth.placeholderNamePlaceholder, text: $viewModel.name)
+            ExampleInputBox(placeholder: Localized.Auth.placeholderName, text: $viewModel.name)
             
             // 이용약관 동의 체크박스
             ExampleCheckbox(label: Localized.Auth.signupAgreeToTerms, isChecked: $viewModel.isAgreeToTerms)

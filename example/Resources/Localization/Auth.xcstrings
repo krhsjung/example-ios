@@ -103,7 +103,7 @@
         }
       }
     },
-    "placeholder_confirm_password_placeholder" : {
+    "placeholder_confirm_password" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -120,7 +120,7 @@
         }
       }
     },
-    "placeholder_email_placeholder" : {
+    "placeholder_email" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -137,7 +137,7 @@
         }
       }
     },
-    "placeholder_name_placeholder" : {
+    "placeholder_name" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -154,7 +154,7 @@
         }
       }
     },
-    "placeholder_password_placeholder" : {
+    "placeholder_password" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -182,7 +182,7 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "이용약관에 동의합니다"
           }
         }
@@ -370,7 +370,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "소문자를 포함해야 합니다"
+            "value" : "비밀번호는 소문자를 포함해야 합니다"
           }
         }
       }
@@ -387,7 +387,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "숫자를 포함해야 합니다"
+            "value" : "비밀번호는 숫자를 포함해야 합니다"
           }
         }
       }
@@ -404,7 +404,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "대문자를 포함해야 합니다"
+            "value" : "비밀번호는 대문자를 포함해야 합니다"
           }
         }
       }
