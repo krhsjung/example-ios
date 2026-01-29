@@ -15,10 +15,12 @@ enum NetworkError: LocalizedError {
     case decodingError(Error)
     case encodingError(Error)
     case serverError(statusCode: Int, errorResponse: ErrorResponse?)
+    case timeout
+    case noConnection
     case unknown(Error)
     case custom(String)
     case cancelled
-    
+
     var errorDescription: String? {
         switch self {
         case .invalidURL:
@@ -30,13 +32,18 @@ enum NetworkError: LocalizedError {
         case .encodingError(let error):
             return Localized.Error.errorEncoding + ": \(error.localizedDescription)"
         case .serverError(let statusCode, let errorResponse):
+            // 1순위: ErrorResponse의 localizedMessage (서버 에러 코드 기반 다국어)
             if let errorResponse = errorResponse {
-                // ErrorResponse의 localizedMessage 사용 (파라미터 자동 처리)
                 return errorResponse.localizedMessage
             }
-            return "Server Error: Status Code - (\(statusCode))"
-        case .unknown(let error):
-            return "\(error.localizedDescription)"
+            // 2순위: HTTP 상태 코드별 다국어 메시지
+            return Self.localizedMessageForStatusCode(statusCode)
+        case .timeout:
+            return Localized.Error.errorTimeout
+        case .noConnection:
+            return Localized.Error.errorNoConnection
+        case .unknown:
+            return Localized.Error.errorUnknown
         case .custom(let message):
             return message
         case .cancelled:
@@ -49,7 +56,7 @@ enum NetworkError: LocalizedError {
         if case .cancelled = self { return true }
         return false
     }
-    
+
     /// 서버에서 제공한 원본 메시지 (디버깅용)
     var serverMessage: String? {
         switch self {
@@ -57,6 +64,28 @@ enum NetworkError: LocalizedError {
             return errorResponse?.message
         default:
             return nil
+        }
+    }
+
+    // MARK: - Private
+
+    /// HTTP 상태 코드별 다국어 메시지 매핑
+    private static func localizedMessageForStatusCode(_ statusCode: Int) -> String {
+        switch statusCode {
+        case 400:
+            return Localized.Error.errorBadRequest
+        case 401:
+            return Localized.Error.errorUnauthorized
+        case 403:
+            return Localized.Error.errorForbidden
+        case 404:
+            return Localized.Error.errorNotFound
+        case 429:
+            return Localized.Error.errorRateLimited
+        case 500, 502, 503:
+            return Localized.Error.errorServer
+        default:
+            return Localized.Error.errorUnknown
         }
     }
 }

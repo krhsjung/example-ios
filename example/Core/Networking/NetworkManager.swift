@@ -127,12 +127,33 @@ final class NetworkManager: NetworkManagerProtocol {
     private let decoder: JSONDecoder
     private let retryConfiguration: RetryConfiguration
 
+    /// SSL 피닝 delegate
+    private let sslPinningDelegate: SSLPinningDelegate?
+
+    /// 보안 쿠키 저장소
+    private let secureCookieStorage = SecureCookieStorage.shared
+
     private init(retryConfiguration: RetryConfiguration = .default) {
         self.retryConfiguration = retryConfiguration
+
         let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = APIConfiguration.timeout
-        configuration.timeoutIntervalForResource = APIConfiguration.timeout
-        self.session = URLSession(configuration: configuration)
+        configuration.timeoutIntervalForRequest = APIConfiguration.requestTimeout
+        configuration.timeoutIntervalForResource = APIConfiguration.resourceTimeout
+        // 기본 쿠키 저장소 비활성화 (SecureCookieStorage 사용)
+        configuration.httpCookieAcceptPolicy = .never
+        configuration.httpShouldSetCookies = false
+
+        // SSL 피닝 설정
+        let pinningDelegate = SSLPinningDelegate(
+            domain: APIConfiguration.pinnedDomain,
+            keyHashes: APIConfiguration.pinnedKeyHashes
+        )
+        self.sslPinningDelegate = pinningDelegate
+        self.session = URLSession(
+            configuration: configuration,
+            delegate: pinningDelegate,
+            delegateQueue: nil
+        )
 
         self.encoder = JSONEncoder()
         self.decoder = JSONDecoder()
@@ -196,10 +217,19 @@ final class NetworkManager: NetworkManagerProtocol {
             } catch let error as NetworkError {
                 lastError = error
 
-                if case .serverError(let statusCode, _) = error,
-                   retryConfiguration.shouldRetry(statusCode: statusCode, method: method, attempt: attempt) {
-                    Log.network("Retryable server error (status: \(statusCode))")
-                    continue
+                switch error {
+                case .serverError(let statusCode, _):
+                    if retryConfiguration.shouldRetry(statusCode: statusCode, method: method, attempt: attempt) {
+                        Log.network("Retryable server error (status: \(statusCode))")
+                        continue
+                    }
+                case .timeout, .noConnection:
+                    if retryConfiguration.retryableMethods.contains(method) && attempt < retryConfiguration.maxRetries {
+                        Log.network("Retryable network error: \(error)")
+                        continue
+                    }
+                default:
+                    break
                 }
 
                 throw error
@@ -226,11 +256,32 @@ final class NetworkManager: NetworkManagerProtocol {
         body: Encodable?,
         headers: [String: String]?
     ) async throws -> T {
-        let urlRequest = try buildURLRequest(url: url, method: method, body: body, headers: headers)
+        var urlRequest = try buildURLRequest(url: url, method: method, body: body, headers: headers)
+
+        // SecureCookieStorage에서 쿠키 헤더 적용
+        if let requestURL = urlRequest.url {
+            let cookieHeaders = secureCookieStorage.cookieHeaders(for: requestURL)
+            cookieHeaders.forEach { key, value in
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
 
         logRequest(urlRequest)
 
-        let (data, response) = try await session.data(for: urlRequest)
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await session.data(for: urlRequest)
+        } catch {
+            throw mapURLSessionError(error)
+        }
+
+        // 응답에서 쿠키 추출하여 SecureCookieStorage에 저장
+        if let httpResponse = response as? HTTPURLResponse,
+           let requestURL = urlRequest.url {
+            secureCookieStorage.saveCookies(from: httpResponse, for: requestURL)
+        }
 
         logResponse(data: data, response: response)
 
@@ -248,6 +299,26 @@ final class NetworkManager: NetworkManagerProtocol {
         }
     }
 
+    /// URLSession 에러를 NetworkError로 매핑
+    private func mapURLSessionError(_ error: Error) -> NetworkError {
+        let nsError = error as NSError
+
+        switch nsError.code {
+        case NSURLErrorTimedOut:
+            return .timeout
+        case NSURLErrorNotConnectedToInternet,
+             NSURLErrorCannotFindHost,
+             NSURLErrorCannotConnectToHost,
+             NSURLErrorNetworkConnectionLost,
+             NSURLErrorDNSLookupFailed:
+            return .noConnection
+        case NSURLErrorCancelled:
+            return .cancelled
+        default:
+            return .unknown(error)
+        }
+    }
+
     /// URLRequest 생성
     private func buildURLRequest(
         url: String,
@@ -261,6 +332,7 @@ final class NetworkManager: NetworkManagerProtocol {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method.rawValue
+        urlRequest.timeoutInterval = APIConfiguration.connectTimeout
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
 
@@ -303,6 +375,17 @@ final class NetworkManager: NetworkManagerProtocol {
 
     // MARK: - Logging
 
+    // MARK: - Sensitive Headers
+    /// 로그에서 마스킹할 민감한 헤더 키
+    private static let sensitiveHeaders: Set<String> = [
+        "cookie", "set-cookie", "authorization"
+    ]
+
+    /// 로그에서 마스킹할 민감한 JSON 필드
+    private static let sensitiveBodyFields: Set<String> = [
+        "password", "token", "identityToken", "accessToken", "refreshToken", "secret"
+    ]
+
     private func logRequest(_ request: URLRequest) {
         var logMessage = "============ REQUEST ============\n"
         logMessage += "URL: \(request.url?.absoluteString ?? "N/A")\n"
@@ -311,13 +394,13 @@ final class NetworkManager: NetworkManagerProtocol {
         if let headers = request.allHTTPHeaderFields, !headers.isEmpty {
             logMessage += "\nHeaders:"
             headers.forEach { key, value in
-                logMessage += "\n  \(key): \(value)"
+                let maskedValue = Self.sensitiveHeaders.contains(key.lowercased()) ? "****" : value
+                logMessage += "\n  \(key): \(maskedValue)"
             }
         }
 
-        if let httpBody = request.httpBody,
-           let jsonString = String(data: httpBody, encoding: .utf8) {
-            logMessage += "\nBody: \(jsonString)"
+        if let httpBody = request.httpBody {
+            logMessage += "\nBody: \(maskSensitiveFields(in: httpBody))"
         }
         logMessage += "\n=================================="
 
@@ -329,6 +412,11 @@ final class NetworkManager: NetworkManagerProtocol {
 
         if let httpResponse = response as? HTTPURLResponse {
             logMessage += "Status Code: \(httpResponse.statusCode)"
+
+            // Set-Cookie 헤더 마스킹
+            if let setCookie = httpResponse.value(forHTTPHeaderField: "Set-Cookie") {
+                logMessage += "\nSet-Cookie: \(setCookie.prefix(20))****"
+            }
         }
 
         if let jsonString = String(data: data, encoding: .utf8) {
@@ -337,6 +425,27 @@ final class NetworkManager: NetworkManagerProtocol {
         logMessage += "\n=================================="
 
         Log.network(logMessage)
+    }
+
+    /// JSON body에서 민감한 필드를 마스킹
+    private func maskSensitiveFields(in data: Data) -> String {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return String(data: data, encoding: .utf8) ?? "N/A"
+        }
+
+        var masked = json
+        for key in json.keys {
+            if Self.sensitiveBodyFields.contains(key) {
+                masked[key] = "****"
+            }
+        }
+
+        guard let maskedData = try? JSONSerialization.data(withJSONObject: masked, options: .sortedKeys),
+              let maskedString = String(data: maskedData, encoding: .utf8) else {
+            return "N/A"
+        }
+
+        return maskedString
     }
 }
 
