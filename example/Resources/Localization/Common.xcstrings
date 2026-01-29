@@ -154,6 +154,23 @@
         }
       }
     },
+    "error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오류"
+          }
+        }
+      }
+    },
     "loading" : {
       "extractionState" : "manual",
       "localizations" : {

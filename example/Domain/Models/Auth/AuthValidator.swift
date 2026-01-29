@@ -27,14 +27,14 @@ struct AuthValidator: AuthValidating {
     // MARK: - Email Validation
     func validateEmail(_ email: String) -> ValidationResult {
         guard !email.isEmpty else {
-            return .failure(Localized.Auth.validationEmailEmpty)
+            return .failure(Localized.Error.errorEmptyEmail)
         }
 
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
 
         guard emailPredicate.evaluate(with: email) else {
-            return .failure(Localized.Auth.validationEmailInvalid)
+            return .failure(Localized.Error.errorInvalidEmail)
         }
 
         return .success
@@ -43,26 +43,32 @@ struct AuthValidator: AuthValidating {
     // MARK: - Password Validation
     func validatePassword(_ password: String) -> ValidationResult {
         guard !password.isEmpty else {
-            return .failure(Localized.Auth.validationPasswordEmpty)
+            return .failure(Localized.Error.errorEmptyPassword)
         }
 
         guard password.count >= 8 else {
-            return .failure(Localized.Auth.validationPasswordMinLength)
+            return .failure(Localized.Error.errorWeakPassword)
         }
 
         let hasUpperCase = password.rangeOfCharacter(from: .uppercaseLetters) != nil
         guard hasUpperCase else {
-            return .failure(Localized.Auth.validationPasswordNoUppercase)
+            return .failure(Localized.Error.errorPasswordNoUppercase)
         }
 
         let hasLowerCase = password.rangeOfCharacter(from: .lowercaseLetters) != nil
         guard hasLowerCase else {
-            return .failure(Localized.Auth.validationPasswordNoLowercase)
+            return .failure(Localized.Error.errorPasswordNoLowercase)
         }
 
         let hasNumber = password.rangeOfCharacter(from: .decimalDigits) != nil
         guard hasNumber else {
-            return .failure(Localized.Auth.validationPasswordNoNumber)
+            return .failure(Localized.Error.errorPasswordNoNumber)
+        }
+
+        let specialCharacters = CharacterSet(charactersIn: "!@#$%^&*()_+-=[]{}|;':\",./<>?`~")
+        let hasSpecialCharacter = password.unicodeScalars.contains(where: { specialCharacters.contains($0) })
+        guard hasSpecialCharacter else {
+            return .failure(Localized.Error.errorPasswordNoSpecialCharacter)
         }
 
         return .success
@@ -71,11 +77,11 @@ struct AuthValidator: AuthValidating {
     // MARK: - Password Confirmation Validation
     func validatePasswordConfirmation(password: String, confirmPassword: String) -> ValidationResult {
         guard !confirmPassword.isEmpty else {
-            return .failure(Localized.Auth.validationConfirmPasswordEmpty)
+            return .failure(Localized.Error.errorEmptyConfirmPassword)
         }
 
         guard password == confirmPassword else {
-            return .failure(Localized.Auth.validationPasswordsNotMatch)
+            return .failure(Localized.Error.errorPasswordNotMatch)
         }
 
         return .success
@@ -84,11 +90,11 @@ struct AuthValidator: AuthValidating {
     // MARK: - Name Validation
     func validateName(_ name: String) -> ValidationResult {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
-            return .failure(Localized.Auth.validationNameEmpty)
+            return .failure(Localized.Error.errorEmptyUsername)
         }
 
         guard name.count >= 2 else {
-            return .failure(Localized.Auth.validationNameMinLength)
+            return .failure(Localized.Error.errorNameMinLength)
         }
 
         return .success

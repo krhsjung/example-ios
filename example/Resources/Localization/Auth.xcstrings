@@ -1,36 +1,19 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "login_continue_with" : {
+    "login_title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Or continue with"
+            "value" : "Log in to Your Account"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "또는 다음으로 계속하기"
-          }
-        }
-      }
-    },
-    "login_remember_me" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remember me"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "로그인 상태 유지"
+            "value" : "계정에 로그인하기"
           }
         }
       }
@@ -52,121 +35,53 @@
         }
       }
     },
-    "login_title" : {
+    "login_continue_with" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Log in to Your Account"
+            "value" : "Or continue with"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "계정에 로그인하기"
+            "value" : "또는 다음으로 계속하기"
           }
         }
       }
     },
-    "oauth_apple" : {
+    "signup_title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Continue with Google"
+            "value" : "Create Your Account"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple로 계속하기"
+            "value" : "계정 만들기"
           }
         }
       }
     },
-    "oauth_google" : {
+    "signup_subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Continue with Apple"
+            "value" : "Sign up easily and get started"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Google로 계속하기"
-          }
-        }
-      }
-    },
-    "placeholder_confirm_password" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirm your password"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호 확인하세요"
-          }
-        }
-      }
-    },
-    "placeholder_email" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter your email"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이메일을 입력하세요"
-          }
-        }
-      }
-    },
-    "placeholder_name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter your name"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이름을 입력하세요"
-          }
-        }
-      }
-    },
-    "placeholder_password" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter your password"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호를 입력하세요"
+            "value" : "간편하게 가입하고 시작하세요"
           }
         }
       }
@@ -205,223 +120,104 @@
         }
       }
     },
-    "signup_subtitle" : {
+    "placeholder_email" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I agree to the terms and conditions"
+            "value" : "Enter your email"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Example에 가입하여 특별한 기능을 이용하세요"
+            "value" : "이메일을 입력하세요"
           }
         }
       }
     },
-    "signup_title" : {
+    "placeholder_password" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create Your Account"
+            "value" : "Enter your password"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "계정 만들기"
+            "value" : "비밀번호를 입력하세요"
           }
         }
       }
     },
-    "validation_confirm_password_empty" : {
+    "placeholder_confirm_password" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please confirm your password"
+            "value" : "Confirm your password"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "비밀번호 확인란을 입력해 주세요"
+            "value" : "비밀번호를 확인하세요"
           }
         }
       }
     },
-    "validation_email_empty" : {
+    "placeholder_name" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter a email"
+            "value" : "Enter your name"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이메일을 입력해주세요"
+            "value" : "이름을 입력하세요"
           }
         }
       }
     },
-    "validation_email_invalid" : {
+    "oauth_google" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter a valid email"
+            "value" : "Continue with Google"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "유효한 이메일을 입력해주세요"
+            "value" : "Google로 계속하기"
           }
         }
       }
     },
-    "validation_name_empty" : {
+    "oauth_apple" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter your name"
+            "value" : "Continue with Apple"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이름을 입력해주세요"
-          }
-        }
-      }
-    },
-    "validation_name_min_length" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Name must be at least 2 characters"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이름은 최소 2자 이상이어야 합니다"
-          }
-        }
-      }
-    },
-    "validation_password_empty" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please enter a password"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호를 입력해주세요"
-          }
-        }
-      }
-    },
-    "validation_password_min_length" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password must be at least 8 characters"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호는 최소 8자 이상이어야 합니다"
-          }
-        }
-      }
-    },
-    "validation_password_no_lowercase" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password must contain a lowercase letter"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호는 소문자를 포함해야 합니다"
-          }
-        }
-      }
-    },
-    "validation_password_no_number" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password must contain a number"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호는 숫자를 포함해야 합니다"
-          }
-        }
-      }
-    },
-    "validation_password_no_uppercase" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password must contain an uppercase letter"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호는 대문자를 포함해야 합니다"
-          }
-        }
-      }
-    },
-    "validation_passwords_not_match" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passwords do not match"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비밀번호가 일치하지 않습니다"
+            "value" : "Apple로 계속하기"
           }
         }
       }
