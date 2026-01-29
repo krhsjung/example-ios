@@ -116,8 +116,13 @@ final class AuthManager {
 
     /// 현재 세션을 종료하고 로그아웃 처리
     ///
-    /// 서버에 로그아웃 요청을 보내고, 로컬 상태를 초기화합니다.
+    /// 서버에 로그아웃 요청을 보내고, 로컬의 모든 민감한 데이터를 안전하게 삭제합니다.
     /// 서버 요청 실패 시에도 로컬 상태는 항상 초기화됩니다.
+    ///
+    /// 삭제 대상:
+    /// - 서버 세션 (로그아웃 API 호출)
+    /// - Keychain에 저장된 쿠키/토큰
+    /// - 메모리의 사용자 정보
     func logOut() async {
         do {
             // 서버에 로그아웃 요청 (토큰 무효화)
@@ -125,9 +130,26 @@ final class AuthManager {
         } catch {
             Log.error("Logout error:", error.localizedDescription)
         }
-        // 서버 요청 성공/실패와 관계없이 로컬 상태 초기화
+
+        // 로컬 민감 데이터 안전 삭제
+        clearSensitiveData()
+    }
+
+    // MARK: - Private Security Methods
+
+    /// 모든 로컬 민감 데이터를 안전하게 삭제
+    private func clearSensitiveData() {
+        // 메모리 상태 초기화
         currentUser = nil
         isLoggedIn = false
+
+        // 보안 쿠키 저장소 삭제 (Keychain + 메모리)
+        SecureCookieStorage.shared.deleteAllCookies()
+
+        // Keychain의 모든 인증 데이터 삭제
+        KeychainManager.shared.deleteAll()
+
+        Log.custom(category: "Security", "All sensitive data cleared on logout")
     }
 
     // MARK: - Email Authentication
@@ -252,7 +274,7 @@ final class AuthManager {
     /// - Returns: URL 쿼리 파라미터에서 추출한 인증 코드
     /// - Throws: 코드 파라미터가 없으면 에러 발생
     private func extractCode(from callbackURL: URL) throws -> String {
-        Log.custom(category: "Auth", "OAuth callback URL:", callbackURL)
+        Log.custom(category: "Auth", "OAuth callback received")
 
         guard let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
               let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
@@ -321,9 +343,9 @@ final class AuthManager {
             throw NetworkError.custom(Localized.Error.errorOauthCallbackFailed)
         }
 
-        Log.custom(category: "Auth", "Apple Sign In - User ID:", credential.user)
-        Log.custom(category: "Auth", "Apple Sign In - Email:", credential.email ?? "nil")
-        Log.custom(category: "Auth", "Apple Sign In - Full Name:", credential.fullName?.givenName ?? "nil", credential.fullName?.familyName ?? "nil")
+        Log.custom(category: "Auth", "Apple Sign In - User ID:", String(credential.user.prefix(8)) + "****")
+        Log.custom(category: "Auth", "Apple Sign In - Email:", credential.email != nil ? "provided" : "nil")
+        Log.custom(category: "Auth", "Apple Sign In - Full Name:", credential.fullName != nil ? "provided" : "nil")
 
         return AppleSignInRequest(
             identityToken: tokenString,
