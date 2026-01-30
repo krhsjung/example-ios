@@ -10,15 +10,17 @@ import Foundation
 
 // MARK: - User Model
 struct User: Codable, Identifiable, Equatable {
-    let id: String
+    let idx: Int
     let name: String
     let email: String
     let picture: String?
     let provider: LoginProvider?
     let maxSessions: Int?
 
+    var id: Int { idx }
+
     enum CodingKeys: String, CodingKey {
-        case id
+        case idx
         case email
         case name
         case picture
