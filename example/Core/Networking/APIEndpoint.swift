@@ -68,7 +68,7 @@ enum APIEndpoint {
         case .logOut:
             return "/auth/logout"
         case .signUp:
-            return "/user"
+            return "/auth/register"
         case .oauth(let snsProvider):
             return "/auth/\(snsProvider.rawValue)?flow=ios&prompt=select_account"
         case .appleSignIn:
