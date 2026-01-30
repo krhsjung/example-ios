@@ -51,7 +51,7 @@ final class SecureCookieStorage: @unchecked Sendable {
 
     // MARK: - Public Methods
 
-    /// HTTP 응답에서 쿠키를 추출하여 저장
+    /// HTTP 응답에서 쿠키를 추출하여 저장 (동기 처리)
     ///
     /// - Parameters:
     ///   - response: HTTP 응답 객체
@@ -62,20 +62,18 @@ final class SecureCookieStorage: @unchecked Sendable {
         let cookies = HTTPCookie.cookies(withResponseHeaderFields: headerFields, for: url)
         guard !cookies.isEmpty else { return }
 
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self else { return }
-
+        queue.sync(flags: .barrier) { [self] in
             for newCookie in cookies {
                 // 기존 동일 쿠키 제거 후 새 쿠키 추가
-                self.memoryCookies.removeAll { $0.name == newCookie.name && $0.domain == newCookie.domain }
-                self.memoryCookies.append(newCookie)
+                memoryCookies.removeAll { $0.name == newCookie.name && $0.domain == newCookie.domain }
+                memoryCookies.append(newCookie)
             }
 
             // 만료된 쿠키 정리
-            self.removeExpiredCookies()
+            removeExpiredCookies()
 
-            // Keychain에 비동기 저장
-            self.saveToKeychain()
+            // Keychain에 저장
+            saveToKeychain()
         }
     }
 
@@ -154,14 +152,13 @@ final class SecureCookieStorage: @unchecked Sendable {
         }
     }
 
-    /// Keychain에 쿠키 저장
+    /// Keychain에 쿠키 저장 (NSKeyedArchiver 사용으로 속성 유실 방지)
     private func saveToKeychain() {
-        let cookieData = memoryCookies.compactMap { cookie -> [String: Any]? in
-            return cookie.properties as? [String: Any]
-        }
-
-        guard let data = try? JSONSerialization.data(withJSONObject: cookieData) else {
-            Log.error("Failed to serialize cookies for Keychain")
+        guard let data = try? NSKeyedArchiver.archivedData(
+            withRootObject: memoryCookies,
+            requiringSecureCoding: false
+        ) else {
+            Log.error("Failed to archive cookies for Keychain")
             return
         }
 
@@ -172,26 +169,25 @@ final class SecureCookieStorage: @unchecked Sendable {
         }
     }
 
-    /// Keychain에서 쿠키 로드
+    /// Keychain에서 쿠키 로드 (NSKeyedUnarchiver 사용)
     private func loadFromKeychain() {
         guard let data = keychain.loadData(key: .cookies) else { return }
 
-        guard let cookieArrayData = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
-            Log.error("Failed to deserialize cookies from Keychain")
-            return
+        do {
+            let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+            unarchiver.requiresSecureCoding = false
+            guard let cookies = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? [HTTPCookie] else {
+                Log.error("Failed to decode cookies from Keychain")
+                return
+            }
+            unarchiver.finishDecoding()
+
+            memoryCookies = cookies
+            removeExpiredCookies()
+
+            Log.custom(category: "Security", "Loaded \(memoryCookies.count) cookies from Keychain")
+        } catch {
+            Log.error("Failed to unarchive cookies from Keychain:", error.localizedDescription)
         }
-
-        let cookies = cookieArrayData.compactMap { properties -> HTTPCookie? in
-            // JSONSerialization이 String 키를 반환하므로 HTTPCookiePropertyKey로 변환
-            let cookieProperties = Dictionary(uniqueKeysWithValues: properties.map {
-                (HTTPCookiePropertyKey($0.key), $0.value)
-            })
-            return HTTPCookie(properties: cookieProperties)
-        }
-
-        memoryCookies = cookies
-        removeExpiredCookies()
-
-        Log.custom(category: "Security", "Loaded \(memoryCookies.count) cookies from Keychain")
     }
 }
