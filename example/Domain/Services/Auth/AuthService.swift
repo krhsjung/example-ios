@@ -96,7 +96,8 @@ final class AuthService: AuthServiceProtocol {
 
     // MARK: - Private Methods
     
-    /// 비밀번호를 SHA-512로 해싱
+    /// 비밀번호를 SHA-512로 해싱하여 전송
+    /// - Note: 서버에서 Argon2로 2차 해싱 후 저장함. 클라이언트 SHA-512는 평문 전송 방지 목적.
     private func hashPassword(_ password: String) -> String {
         guard let data = password.data(using: .utf8) else {
             return password

@@ -195,7 +195,6 @@ authManager.checkSession()
 ### 보안
 
 - [ ] SSL Pinning 프로덕션 해시 추가 (`APIConfiguration.pinnedKeyHashes`)
-- [ ] 비밀번호 보안 개선 (클라이언트 SHA-512 → 서버 측 bcrypt/Argon2)
 
 ### 아키텍처
 
