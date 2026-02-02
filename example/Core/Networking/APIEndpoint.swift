@@ -48,6 +48,7 @@ enum APIEndpoint {
     case logIn
     case exchange
     case logOut
+    case refresh
     case signUp
     case oauth(_ snsProvider: SnsProvider)
     case appleSignIn
@@ -62,13 +63,15 @@ enum APIEndpoint {
         switch self {
         // Auth
         case .logIn:
-            return "/auth/login"
+            return "/auth/login/mobile"
         case .exchange:
             return "/auth/exchange"
         case .logOut:
             return "/auth/logout"
+        case .refresh:
+            return "/auth/refresh"
         case .signUp:
-            return "/auth/register"
+            return "/auth/register/mobile"
         case .oauth(let snsProvider):
             return "/auth/\(snsProvider.rawValue)?flow=ios&prompt=select_account"
         case .appleSignIn:
@@ -86,5 +89,15 @@ enum APIEndpoint {
     
     var url: String {
         return APIConfiguration.baseURL + path
+    }
+
+    /// 인증 토큰(Authorization 헤더) 필요 여부
+    var requiresAuth: Bool {
+        switch self {
+        case .me, .logOut:
+            return true
+        case .logIn, .signUp, .exchange, .refresh, .oauth, .appleSignIn, .custom:
+            return false
+        }
     }
 }

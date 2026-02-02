@@ -34,10 +34,14 @@ final class KeychainManager: Sendable {
     // MARK: - Key
     /// Keychain 저장 키 정의
     enum Key: String {
+        /// 액세스 토큰
+        case accessToken = "kr.hs.jung.accessToken"
+        /// 리프레시 토큰
+        case refreshToken = "kr.hs.jung.refreshToken"
         /// 쿠키 데이터 (서버 세션 쿠키)
-        case cookies = "com.example.cookies"
+        case cookies = "kr.hs.jung.cookies"
         /// 마지막 인증 시간
-        case lastAuthDate = "com.example.lastAuthDate"
+        case lastAuthDate = "kr.hs.jung.lastAuthDate"
     }
 
     // MARK: - Configuration

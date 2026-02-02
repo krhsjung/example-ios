@@ -103,19 +103,6 @@ protocol NetworkManagerProtocol {
         headers: [String: String]?
     ) async throws -> T
 
-    // Convenience methods (Decodable 반환)
-    func get<T: Decodable>(endpoint: APIEndpoint, headers: [String: String]?) async throws -> T
-    func post<T: Decodable>(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws -> T
-    func put<T: Decodable>(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws -> T
-    func patch<T: Decodable>(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws -> T
-    func delete<T: Decodable>(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws -> T
-
-    // Convenience methods (Void 반환)
-    func get(endpoint: APIEndpoint, headers: [String: String]?) async throws
-    func post(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws
-    func put(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws
-    func patch(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws
-    func delete(endpoint: APIEndpoint, body: Encodable?, headers: [String: String]?) async throws
 }
 
 // MARK: - Network Manager
@@ -132,6 +119,9 @@ final class NetworkManager: NetworkManagerProtocol {
 
     /// 보안 쿠키 저장소
     private let secureCookieStorage = SecureCookieStorage.shared
+
+    /// 토큰 리프레시 동시 호출 방지용 Task
+    private var refreshTask: Task<AuthResponse, Error>?
 
     private init(retryConfiguration: RetryConfiguration = .default) {
         self.retryConfiguration = retryConfiguration
@@ -162,18 +152,68 @@ final class NetworkManager: NetworkManagerProtocol {
     // MARK: - Core Request Methods
 
     /// APIEndpoint를 사용한 요청
+    ///
+    /// 인증 필요 엔드포인트에서 401 응답 시 자동으로 토큰 리프레시를 시도합니다.
+    /// - `server_auth_token_expired`: 리프레시 토큰으로 새 토큰 발급 후 원래 요청 재시도
+    /// - `server_auth_session_invalid`, `server_auth_token_invalid`: 재로그인 필요 → 로그아웃 처리
     func request<T: Decodable>(
         endpoint: APIEndpoint,
         method: HTTPMethod = .get,
         body: Encodable? = nil,
         headers: [String: String]? = nil
     ) async throws -> T {
-        return try await request(
-            url: endpoint.url,
-            method: method,
-            body: body,
-            headers: headers
-        )
+        // 인증 필요 엔드포인트: 토큰 검증 후 Authorization 헤더 자동 주입
+        var mergedHeaders = headers ?? [:]
+        if endpoint.requiresAuth {
+            guard let accessToken = KeychainManager.shared.loadString(key: .accessToken) else {
+                throw NetworkError.custom(Localized.Error.errorUnauthorized)
+            }
+            mergedHeaders["Authorization"] = "Bearer \(accessToken)"
+        }
+
+        do {
+            return try await request(
+                url: endpoint.url,
+                method: method,
+                body: body,
+                headers: mergedHeaders
+            )
+        } catch let error as NetworkError {
+            // 401 응답이고 인증 필요 엔드포인트인 경우 토큰 리프레시 시도
+            guard endpoint.requiresAuth,
+                  case .serverError(401, let errorResponse) = error else {
+                throw error
+            }
+
+            let errorId = errorResponse?.id ?? ""
+
+            switch errorId {
+            case "server_auth_token_expired":
+                // 토큰 만료 → 리프레시 시도
+                let refreshResponse = try await refreshTokens()
+
+                // 새 토큰으로 원래 요청 재시도
+                var retryHeaders = headers ?? [:]
+                retryHeaders["Authorization"] = "Bearer \(refreshResponse.accessToken)"
+
+                return try await request(
+                    url: endpoint.url,
+                    method: method,
+                    body: body,
+                    headers: retryHeaders
+                )
+
+            case "server_auth_session_invalid", "server_auth_token_invalid":
+                // 세션/토큰 무효 → 재로그인 필요
+                await forceLogout()
+                throw error
+
+            default:
+                // 알 수 없는 401 에러 → 재로그인 처리
+                await forceLogout()
+                throw error
+            }
+        }
     }
 
     /// URL String을 사용한 요청 (retry 로직 포함)
@@ -186,6 +226,64 @@ final class NetworkManager: NetworkManagerProtocol {
         try await executeWithRetry(method: method) {
             try await self.performRequest(url: url, method: method, body: body, headers: headers)
         }
+    }
+
+    // MARK: - Token Refresh
+
+    /// 리프레시 토큰으로 새 액세스/리프레시 토큰 발급
+    ///
+    /// 동시에 여러 요청에서 401이 발생해도 리프레시는 1회만 실행됩니다.
+    /// - Returns: 새로운 토큰이 포함된 `AuthResponse`
+    /// - Throws: 리프레시 실패 시 에러 (재로그인 필요)
+    private func refreshTokens() async throws -> AuthResponse {
+        // 이미 리프레시 진행 중이면 해당 Task의 결과를 대기
+        if let existingTask = refreshTask {
+            return try await existingTask.value
+        }
+
+        let task = Task<AuthResponse, Error> {
+            defer { refreshTask = nil }
+
+            guard let refreshToken = KeychainManager.shared.loadString(key: .refreshToken) else {
+                await forceLogout()
+                throw NetworkError.custom(Localized.Error.errorUnauthorized)
+            }
+
+            Log.custom(category: "Auth", "Token expired, attempting refresh...")
+
+            let body = RefreshRequest(refreshToken: refreshToken)
+            let response: AuthResponse = try await performRequest(
+                url: APIEndpoint.refresh.url,
+                method: .post,
+                body: body,
+                headers: nil
+            )
+
+            // 새 토큰 Keychain에 저장
+            _ = try? KeychainManager.shared.save(key: .accessToken, value: response.accessToken)
+            _ = try? KeychainManager.shared.save(key: .refreshToken, value: response.refreshToken)
+
+            Log.custom(category: "Auth", "Token refresh successful")
+            return response
+        }
+
+        refreshTask = task
+
+        do {
+            return try await task.value
+        } catch {
+            // 리프레시 실패 → 재로그인 필요
+            Log.error("Token refresh failed:", error.localizedDescription)
+            await forceLogout()
+            throw error
+        }
+    }
+
+    /// 강제 로그아웃 처리 (AuthManager에 알림)
+    @MainActor
+    private func forceLogout() async {
+        Log.custom(category: "Auth", "Force logout - re-login required")
+        AuthManager.shared.handleForceLogout()
     }
 
     // MARK: - Private Methods
@@ -450,7 +548,7 @@ final class NetworkManager: NetworkManagerProtocol {
 }
 
 // MARK: - Convenience Extensions (Decodable 반환)
-extension NetworkManager {
+extension NetworkManagerProtocol {
     func get<T: Decodable>(
         endpoint: APIEndpoint,
         headers: [String: String]? = nil
@@ -492,7 +590,7 @@ extension NetworkManager {
 }
 
 // MARK: - Convenience Extensions (Void 반환)
-extension NetworkManager {
+extension NetworkManagerProtocol {
     func get(
         endpoint: APIEndpoint,
         headers: [String: String]? = nil

@@ -12,10 +12,10 @@ import AuthenticationServices
 
 // MARK: - Auth Service Protocol
 protocol AuthServiceProtocol {
-    func logIn(_ request: LogInRequest) async throws -> User
-    func exchange(_ request: ExchangeRequest) async throws -> User
-    func appleSignIn(_ request: AppleSignInRequest) async throws -> User
-    func signUp(_ request: SignUpRequest) async throws -> User
+    func logIn(_ request: LogInRequest) async throws -> AuthResponse
+    func exchange(_ request: ExchangeRequest) async throws -> AuthResponse
+    func appleSignIn(_ request: AppleSignInRequest) async throws -> AuthResponse
+    func signUp(_ request: SignUpRequest) async throws -> AuthResponse
     func me() async throws -> User
     func logOut() async throws
 }
@@ -30,40 +30,28 @@ final class AuthService: AuthServiceProtocol {
         self.networkManager = networkManager
     }
 
-    func logIn(_ request: LogInRequest) async throws -> User {
-        
+    func logIn(_ request: LogInRequest) async throws -> AuthResponse {
+
         // 해싱된 비밀번호로 새로운 요청 생성
         let hashedRequest = LogInRequest(
             email: request.email,
             password: hashPassword(request.password),
             provider: request.provider
         )
-        
-        return try await networkManager.post(
-            endpoint: .logIn,
-            body: hashedRequest,
-            headers: nil
-        )
-    }
-    
-    func exchange(_ request: ExchangeRequest) async throws -> User {
-        return try await networkManager.post(
-            endpoint: .exchange,
-            body: request,
-            headers: nil
-        )
-    }
-    
-    func appleSignIn(_ request: AppleSignInRequest) async throws -> User {
-        return try await networkManager.post(
-            endpoint: .appleSignIn,
-            body: request,
-            headers: nil
-        )
+
+        return try await networkManager.post(endpoint: .logIn, body: hashedRequest)
     }
 
-    func signUp(_ request: SignUpRequest) async throws -> User {
-        
+    func exchange(_ request: ExchangeRequest) async throws -> AuthResponse {
+        return try await networkManager.post(endpoint: .exchange, body: request)
+    }
+
+    func appleSignIn(_ request: AppleSignInRequest) async throws -> AuthResponse {
+        return try await networkManager.post(endpoint: .appleSignIn, body: request)
+    }
+
+    func signUp(_ request: SignUpRequest) async throws -> AuthResponse {
+
         // 해싱된 비밀번호로 새로운 요청 생성
         let hashedRequest = SignUpRequest(
             email: request.email,
@@ -71,27 +59,16 @@ final class AuthService: AuthServiceProtocol {
             name: request.name,
             provider: request.provider
         )
-        
-        return try await networkManager.post(
-            endpoint: .signUp,
-            body: hashedRequest,
-            headers: nil
-        )
+
+        return try await networkManager.post(endpoint: .signUp, body: hashedRequest)
     }
-    
+
     func me() async throws -> User {
-        return try await networkManager.get(
-            endpoint: .me,
-            headers: nil
-        )
+        return try await networkManager.get(endpoint: .me)
     }
 
     func logOut() async throws {
-        return try await networkManager.post(
-            endpoint: .logOut,
-            body: nil,
-            headers: nil
-        )
+        try await networkManager.post(endpoint: .logOut)
     }
 
     // MARK: - Private Methods

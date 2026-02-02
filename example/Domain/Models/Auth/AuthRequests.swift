@@ -54,6 +54,19 @@ struct ExchangeRequest: Codable {
     let code: String
 }
 
+// MARK: - Refresh Request
+struct RefreshRequest: Codable {
+    let refreshToken: String
+}
+
+// MARK: - Auth Response
+/// 인증 API 공통 응답 (로그인, 회원가입, OAuth, Apple Sign In)
+struct AuthResponse: Decodable {
+    let accessToken: String
+    let refreshToken: String
+    let user: User
+}
+
 // MARK: - Apple Sign In Request
 struct AppleSignInRequest: Codable {
     let identityToken: String

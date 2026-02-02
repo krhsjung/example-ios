@@ -67,6 +67,9 @@ final class AuthManager {
     /// 인증 관련 API 호출을 담당하는 서비스
     private let authService: AuthServiceProtocol
 
+    /// Keychain 매니저 (토큰 저장/조회)
+    private let keychain = KeychainManager.shared
+
     // MARK: - Configuration
 
     /// OAuth 콜백 URL 스킴
@@ -135,6 +138,32 @@ final class AuthManager {
         clearSensitiveData()
     }
 
+    // MARK: - Force Logout
+
+    /// 토큰 무효/세션 만료로 인한 강제 로그아웃 처리
+    ///
+    /// NetworkManager에서 401 응답 시 리프레시 실패 또는 세션 무효 판정 시 호출됩니다.
+    /// 서버 로그아웃 API는 호출하지 않고 로컬 데이터만 삭제합니다.
+    func handleForceLogout() {
+        Log.custom(category: "Auth", "Force logout triggered - clearing local data")
+        clearSensitiveData()
+    }
+
+    // MARK: - Private Token Methods
+
+    /// 인증 응답에서 토큰을 Keychain에 저장하고 사용자 상태 업데이트
+    private func handleAuthResponse(_ response: AuthResponse) {
+        do {
+            try keychain.save(key: .accessToken, value: response.accessToken)
+            try keychain.save(key: .refreshToken, value: response.refreshToken)
+        } catch {
+            Log.error("Failed to save tokens to Keychain:", error.localizedDescription)
+        }
+
+        currentUser = response.user
+        isLoggedIn = true
+    }
+
     // MARK: - Private Security Methods
 
     /// 모든 로컬 민감 데이터를 안전하게 삭제
@@ -146,8 +175,8 @@ final class AuthManager {
         // 보안 쿠키 저장소 삭제 (Keychain + 메모리)
         SecureCookieStorage.shared.deleteAllCookies()
 
-        // Keychain의 모든 인증 데이터 삭제
-        KeychainManager.shared.deleteAll()
+        // Keychain의 모든 인증 데이터 삭제 (토큰 포함)
+        keychain.deleteAll()
 
         Log.custom(category: "Security", "All sensitive data cleared on logout")
     }
@@ -160,10 +189,9 @@ final class AuthManager {
     /// - Throws: 인증 실패 시 `NetworkError` 발생, 취소 시 `NetworkError.cancelled` 발생
     func logIn(request: LogInRequest) async throws {
         try Task.checkCancellation()
-        let user = try await authService.logIn(request)
+        let response = try await authService.logIn(request)
         try Task.checkCancellation()
-        currentUser = user
-        isLoggedIn = true
+        handleAuthResponse(response)
     }
 
     /// 이메일과 비밀번호로 회원가입
@@ -172,10 +200,9 @@ final class AuthManager {
     /// - Throws: 회원가입 실패 시 `NetworkError` 발생 (이메일 중복 등), 취소 시 `NetworkError.cancelled` 발생
     func signUp(request: SignUpRequest) async throws {
         try Task.checkCancellation()
-        let user = try await authService.signUp(request)
+        let response = try await authService.signUp(request)
         try Task.checkCancellation()
-        currentUser = user
-        isLoggedIn = true
+        handleAuthResponse(response)
     }
 
     // MARK: - Social Authentication
@@ -224,9 +251,9 @@ final class AuthManager {
         // 2. 콜백 URL에서 인증 코드 추출
         let code = try extractCode(from: callbackURL)
         // 3. 인증 코드를 서버에서 액세스 토큰으로 교환
-        currentUser = try await authService.exchange(ExchangeRequest(code: code))
+        let response = try await authService.exchange(ExchangeRequest(code: code))
         try Task.checkCancellation()
-        isLoggedIn = true
+        handleAuthResponse(response)
     }
 
     /// 시스템 브라우저를 사용한 OAuth 세션 시작
@@ -299,9 +326,9 @@ final class AuthManager {
         // 2. credential에서 서버 요청용 데이터 추출
         let request = try createAppleSignInRequest(from: credential)
         // 3. 서버에 Apple 인증 정보 전송 및 사용자 정보 수신
-        currentUser = try await authService.appleSignIn(request)
+        let response = try await authService.appleSignIn(request)
         try Task.checkCancellation()
-        isLoggedIn = true
+        handleAuthResponse(response)
     }
 
     /// Apple Sign In 인증 UI 표시 및 결과 대기
