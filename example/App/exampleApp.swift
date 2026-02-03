@@ -26,6 +26,7 @@ struct exampleApp: App {
                     LogInView()
                 }
             }
+            .preferredColorScheme(.light) // TODO: 다크모드 지원 시 제거
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             switch newPhase {
