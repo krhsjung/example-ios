@@ -53,7 +53,7 @@ struct SignUpHeaderView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 8) {
             // 메인 타이틀 (예: "회원가입")
-            Text(Localized.Auth.signupTitle)
+            Text(Localized.Common.applicationName)
                 .font(.system(size: 28))
                 .fontWeight(.bold)
                 .foregroundStyle(AppColor.textPrimary)
@@ -109,7 +109,7 @@ struct SignUpFormView: View {
             ExampleInputBox(placeholder: Localized.Auth.placeholderName, text: $viewModel.name)
             
             // 이용약관 동의 체크박스
-            ExampleCheckbox(label: Localized.Auth.signupAgreeToTerms, isChecked: $viewModel.isAgreeToTerms)
+            ExampleCheckbox(label: Localized.Auth.signupAnd, isChecked: $viewModel.isAgreeToTerms)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         

@@ -222,6 +222,23 @@
         }
       }
     },
+    "name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이름"
+          }
+        }
+      }
+    },
     "next" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -337,6 +354,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "제출"
+          }
+        }
+      }
+    },
+    "switch_to_dark_mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to dark mode"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다크 모드로 전환"
+          }
+        }
+      }
+    },
+    "switch_to_light_mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to light mode"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이트 모드로 전환"
           }
         }
       }

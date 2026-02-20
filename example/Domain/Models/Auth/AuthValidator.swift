@@ -81,7 +81,7 @@ struct AuthValidator: AuthValidating {
         }
 
         guard password == confirmPassword else {
-            return .failure(Localized.Error.errorPasswordNotMatch)
+            return .failure(Localized.Error.errorPasswordMismatch)
         }
 
         return .success

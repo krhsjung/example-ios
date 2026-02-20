@@ -13,10 +13,10 @@ struct ExampleButton: View {
     var icon: String? = nil
     var iconSpacing: CGFloat = 10
     var backgroundColor: Color = AppColor.primaryButton
-    var textColor: Color = AppColor.textBlack
+    var textColor: Color = AppColor.buttonTextColor
     var borderColor: Color? = nil
     var borderWidth: CGFloat = 1.5
-    var cornerRadius: CGFloat = 16
+    var cornerRadius: CGFloat = 8
     var horizontalPadding: CGFloat = 18
     var verticalPadding: CGFloat = 8
     var minHeight: CGFloat? = nil
