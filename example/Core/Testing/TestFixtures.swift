@@ -16,13 +16,13 @@ enum TestFixtures {
 
     enum Auth {
         /// 테스트용 이메일
-        static let email = "test@test.com"
+        static let email = "test@example.com"
 
         /// 테스트용 비밀번호
-        static let password = "Test2022@!"
+        static let password = "Test1234!"
 
         /// 테스트용 이름
-        static let name = "Tester"
+        static let name = "Test User"
     }
 
     // MARK: - LogIn Fixtures

@@ -32,11 +32,9 @@ struct MainView: View {
 
 // MARK: - First Tab
 struct FirstTabView: View {
-    private var authManager = AuthManager.shared
+    private var authManager = ServiceContainer.shared.authManager
 
     @State private var isLoading = false
-    @State private var showError = false
-    @State private var errorMessage = ""
 
     var body: some View {
         VStack(spacing: 20) {
@@ -51,7 +49,6 @@ struct FirstTabView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .exampleLoadingOverlay(isLoading: isLoading)
-        .exampleErrorAlert(isPresented: $showError, message: errorMessage)
     }
 
     private func logout() {

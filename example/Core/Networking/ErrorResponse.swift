@@ -40,12 +40,12 @@ struct ErrorResponse: Codable {
             let paramValues = params.values.map { $0 as CVarArg }
             if !paramValues.isEmpty {
                 // 파라미터가 있으면 포맷팅된 메시지 반환
-                return String.servererror(id, paramValues)
+                return String.serverError(id, paramValues)
             }
         }
         
         // 파라미터가 없으면 기본 메시지 반환
-        let localizedMsg = String.servererror(id)
+        let localizedMsg = String.serverError(id)
         return localizedMsg.isEmpty ? message : localizedMsg
     }
     

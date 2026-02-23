@@ -9,7 +9,7 @@
 import Foundation
 
 // MARK: - Login Request
-struct LogInRequest: Codable {
+struct LogInRequest: Codable, Sendable {
     let email: String
     let password: String
     let provider: LoginProvider
@@ -28,7 +28,7 @@ struct LogInRequest: Codable {
 }
 
 // MARK: - Sign Up Request
-struct SignUpRequest: Codable {
+struct SignUpRequest: Codable, Sendable {
     let email: String
     let password: String
     let name: String
@@ -50,31 +50,31 @@ struct SignUpRequest: Codable {
 }
 
 // MARK: - Exchange Request
-struct ExchangeRequest: Codable {
+struct ExchangeRequest: Codable, Sendable {
     let code: String
 }
 
 // MARK: - Refresh Request
-struct RefreshRequest: Codable {
+struct RefreshRequest: Codable, Sendable {
     let refreshToken: String
 }
 
 // MARK: - Auth Response
 /// 인증 API 공통 응답 (로그인, 회원가입, OAuth, Apple Sign In)
-struct AuthResponse: Decodable {
+struct AuthResponse: Decodable, Sendable {
     let accessToken: String
     let refreshToken: String
     let user: User
 }
 
 // MARK: - Apple Sign In Request
-struct AppleSignInRequest: Codable {
+struct AppleSignInRequest: Codable, Sendable {
     let identityToken: String
     let user: String
     let email: String?
     let fullName: FullName?
 
-    struct FullName: Codable {
+    struct FullName: Codable, Sendable {
         let givenName: String?
         let familyName: String?
     }

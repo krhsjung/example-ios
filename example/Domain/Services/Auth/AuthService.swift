@@ -22,11 +22,9 @@ protocol AuthServiceProtocol {
 
 // MARK: - Auth Service
 final class AuthService: AuthServiceProtocol {
-    static let shared = AuthService()
-    
     private let networkManager: NetworkManagerProtocol
 
-    private init(networkManager: NetworkManagerProtocol = NetworkManager.shared) {
+    init(networkManager: NetworkManagerProtocol) {
         self.networkManager = networkManager
     }
 

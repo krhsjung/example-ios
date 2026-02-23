@@ -8,124 +8,162 @@
 
 import SwiftUI
 
+// MARK: - Login Form
+/// 로그인 화면
+/// 이메일/비밀번호 입력, 소셜 로그인, 회원가입 네비게이션을 제공
 struct LogInView: View {
     @State private var viewModel = LogInViewModel()
+    private var router = ServiceContainer.shared.router
 
     var body: some View {
-        NavigationStack {
-            ExamplePageLayout(
-                header: {
-                    LogInHeaderView()
-                },
-                container: {
-                    LogInContainerView(viewModel: viewModel)
-                },
-                footer: {
-                    LogInFooterView()
-                }
-            )
-            .padding(.horizontal, 20)
-            .navigationDestination(isPresented: $viewModel.isNavigateToSignUp) {
-                SignUpView()
-            }
-            .exampleLoadingOverlay(isLoading: viewModel.isLoading)
-            .exampleErrorAlert(
-                isPresented: $viewModel.showError,
-                message: viewModel.errorMessage,
-                onDismiss: viewModel.clearError
-            )
-            .onDisappear {
-                viewModel.cancelCurrentTask()
-            }
-        }
-    }
-}
-
-// MARK: - Header
-struct LogInHeaderView: View {
-    var body: some View {
-        HStack {
-            Text(Localized.Common.applicationName)
-                .font(.system(size: 28))
-                .fontWeight(.bold)
-                .foregroundStyle(AppColor.brand)
-        }
-        .padding(.horizontal, 0)
-        .padding(.vertical, 18)
-        .frame(minHeight: 50, maxHeight: 50)
-    }
-}
-
-// MARK: - Container
-struct LogInContainerView: View {
-    @Bindable var viewModel: LogInViewModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 30) {
-            LogInDescriptionView()
-            LogInFormView(viewModel: viewModel)
+        VStack(alignment: .leading, spacing: 20) {
+            TitleSection()
+            CredentialsSection(viewModel: viewModel)
             ExampleDividerWithText(text: Localized.Auth.loginContinueWith)
             SocialLoginButtonsView { provider in
                 viewModel.signInWith(provider)
             }
+            SignUpSection {
+                router.navigate(to: .signUp)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: 450, maxHeight: .infinity)
+        .padding(.horizontal, 20)
+        // 입력 필드 외부 탭 시 키보드 내리기
+        .contentShape(Rectangle())
+        .onTapGesture {
+            UIApplication.dismissKeyboard()
+        }
+        .ignoresSafeArea(.keyboard)
+        .exampleLoadingOverlay(isLoading: viewModel.isLoading)
+        .exampleErrorAlert(
+            isPresented: $viewModel.showError,
+            message: viewModel.errorMessage,
+            onRetry: viewModel.retryLastAction,
+            onDismiss: viewModel.clearError
+        )
+        .onDisappear {
+            viewModel.cancelCurrentTask()
+        }
+        // NavigationStack 내부 배경색 적용
+        // (NavigationStack의 기본 흰색 배경을 AppColor.background로 덮어씀)
+        .pageBackground()
+        .overlay(alignment: .topTrailing) {
+            ExampleThemeToggle()
+                .padding(.trailing, 20)
+        }
     }
 }
 
-// MARK: - Description
-struct LogInDescriptionView: View {
+// MARK: - Title Section
+/// 앱 이름과 로그인 부제목을 표시하는 상단 타이틀 영역
+private struct TitleSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(Localized.Auth.loginTitle)
-                .font(.system(size: 28))
+            Text(Localized.Common.applicationName)
+                .font(.system(size: 30))
                 .fontWeight(.bold)
                 .foregroundStyle(AppColor.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .frame(maxWidth: .infinity, alignment: .center)
             Text(Localized.Auth.loginSubtitle)
-                .font(.system(size: 15))
-                .foregroundStyle(AppColor.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .font(.system(size: 16))
+                .foregroundStyle(AppColor.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
-// MARK: - Form
-struct LogInFormView: View {
+// MARK: - Credentials Section
+/// 이메일/비밀번호 입력 필드와 로그인 버튼을 포함하는 인증 입력 영역
+///
+/// 동작:
+/// - 포커스 해제(blur) 시 해당 필드만 검증 → 인라인 에러 표시
+/// - 타이핑 시 해당 필드의 에러 자동 클리어
+/// - 로그인 버튼 클릭 시 전체 필드 검증 후 로그인 요청
+private struct CredentialsSection: View {
     @Bindable var viewModel: LogInViewModel
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 30) {
-            VStack(alignment: .leading, spacing: 18) {
-                ExampleInputBox(placeholder: Localized.Common.email, text: $viewModel.email)
-                ExampleInputBox(placeholder: Localized.Common.password, text: $viewModel.password, isSecure: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+    /// 현재 포커스된 입력 필드 추적 (blur 검증에 사용)
+    @FocusState private var focusedField: Field?
 
-            VStack(alignment: .leading, spacing: 18) {
-                ExampleButton(title: Localized.Common.login) {
-                    viewModel.logIn()
-                }
-                ExampleButton(title: Localized.Common.signup) {
-                    viewModel.navigateToSignUp()
-                }
+    private enum Field {
+        case email, password
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            AuthInputField(
+                label: Localized.Common.email,
+                placeholder: Localized.Common.email,
+                text: $viewModel.email,
+                error: viewModel.emailError,
+                focusedField: $focusedField,
+                fieldValue: .email,
+                onClearError: viewModel.clearEmailError
+            )
+
+            AuthInputField(
+                label: Localized.Common.password,
+                placeholder: Localized.Common.password,
+                text: $viewModel.password,
+                isSecure: true,
+                error: viewModel.passwordError,
+                focusedField: $focusedField,
+                fieldValue: .password,
+                onClearError: viewModel.clearPasswordError
+            )
+            
+            Text(Localized.Auth.loginForgetPassword)
+              .font(.system(size: 14))
+              .foregroundStyle(AppColor.linkTextColor)
+              .frame(maxWidth: .infinity, alignment: .trailing)
+
+            // resignFirstResponder를 UIKit 경로로 호출하여
+            // SwiftUI 상태 변경(focusedField = nil)과 달리 부드러운 키보드 해제
+            ExampleButton(title: Localized.Common.login) {
+                UIApplication.dismissKeyboard()
+                viewModel.logIn()
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+        // 포커스 해제(blur) 시 이전 필드를 검증
+        // oldField: 포커스를 잃은 필드 → 해당 필드만 검증
+        .onChange(of: focusedField) { oldField, _ in
+            switch oldField {
+            case .email: viewModel.validateEmail()
+            case .password: viewModel.validatePassword()
+            case nil: break
+            }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
-// MARK: - Footer
-struct LogInFooterView: View {
+// MARK: - SignUp Section
+/// 회원가입 버튼 영역
+/// 탭 시 SignUpView로 네비게이션
+private struct SignUpSection: View {
+    let onSignUp: () -> Void
+
     var body: some View {
-        Spacer()
-            .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40)
+        HStack(alignment: .center, spacing: 8) {
+            Text(Localized.Auth.loginNoAccount)
+                .font(Font.footnote.bold())
+
+            Text(Localized.Common.signup)
+                .font(Font.footnote.bold())
+                .foregroundStyle(AppColor.linkTextColor)
+                .onTapGesture {
+                    onSignUp()
+                }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
 // MARK: - Preview
 #Preview {
-    LogInView()
+    NavigationStack {
+        LogInView()
+    }
 }

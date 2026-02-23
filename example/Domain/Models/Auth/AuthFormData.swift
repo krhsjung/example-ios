@@ -34,7 +34,7 @@ struct LogInFormData: Validatable {
     init(
         email: String,
         password: String,
-        validator: AuthValidating = AuthValidator.shared
+        validator: AuthValidating = AuthValidator()
     ) {
         self.email = email
         self.password = password
@@ -71,7 +71,7 @@ struct SignUpFormData: Validatable {
         confirmPassword: String,
         name: String,
         isAgreeToTerms: Bool,
-        validator: AuthValidating = AuthValidator.shared
+        validator: AuthValidating = AuthValidator()
     ) {
         self.email = email
         self.password = password

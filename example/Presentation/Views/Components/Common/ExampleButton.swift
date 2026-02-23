@@ -1,5 +1,5 @@
 //
-//  CustomButton.swift
+//  ExampleButton.swift
 //  example
 //
 //  Path: Presentation/Views/Components/Common/ExampleButton.swift
@@ -12,17 +12,19 @@ struct ExampleButton: View {
     let title: String
     var icon: String? = nil
     var iconSpacing: CGFloat = 10
-    var backgroundColor: Color = AppColor.primaryButton
-    var textColor: Color = AppColor.textBlack
+    var backgroundColor: Color = AppColor.primaryButtonBackground
+    var textColor: Color = AppColor.buttonTextColor
     var borderColor: Color? = nil
     var borderWidth: CGFloat = 1.5
-    var cornerRadius: CGFloat = 16
+    var cornerRadius: CGFloat = 8
     var horizontalPadding: CGFloat = 18
     var verticalPadding: CGFloat = 8
     var minHeight: CGFloat? = nil
     var maxHeight: CGFloat? = nil
-    let action: () -> Void  // ✅ trailing closure로 사용하기 위해서 맨 마지막으로 이동!
-    
+    let action: () -> Void
+
+    @Environment(\.isEnabled) private var isEnabled
+
     var body: some View {
         Button(action: action) {
             HStack(alignment: .center, spacing: icon != nil ? iconSpacing : 0) {
@@ -56,6 +58,7 @@ struct ExampleButton: View {
                     }
                 }
             )
+            .opacity(isEnabled ? 1.0 : 0.5)
         }
     }
 }
@@ -72,13 +75,13 @@ struct ExampleButton: View {
             print("Sign Up tapped")
         }
         
-        // Google SNS 버튼 (trailing closure)
+        // Google 소셜 버튼 (trailing closure)
         ExampleButton(
             title: "Continue with Google",
             icon: "google",
-            backgroundColor: AppColor.snsButtonBackground,
+            backgroundColor: AppColor.socialButtonBackground,
             textColor: .black,
-            borderColor: AppColor.borderPrimary,
+            borderColor: AppColor.socialButtonStroke,
             horizontalPadding: 20,
             minHeight: 36,
             maxHeight: 36
@@ -86,13 +89,13 @@ struct ExampleButton: View {
             print("Google login tapped")
         }
 
-        // Apple SNS 버튼 (trailing closure)
+        // Apple 소셜 버튼 (trailing closure)
         ExampleButton(
             title: "Continue with Apple",
             icon: "apple",
-            backgroundColor: AppColor.snsButtonBackground,
+            backgroundColor: AppColor.socialButtonBackground,
             textColor: .black,
-            borderColor: AppColor.borderPrimary,
+            borderColor: AppColor.socialButtonStroke,
             horizontalPadding: 20,
             minHeight: 36,
             maxHeight: 36

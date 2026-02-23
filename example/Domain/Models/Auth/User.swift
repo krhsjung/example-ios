@@ -9,7 +9,7 @@
 import Foundation
 
 // MARK: - User Model
-struct User: Codable, Identifiable, Equatable {
+struct User: Codable, Identifiable, Equatable, Sendable {
     let idx: Int
     let name: String
     let email: String

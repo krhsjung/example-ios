@@ -2,14 +2,15 @@
 //  ExampleCheckbox.swift
 //  example
 //
+//  Path: Presentation/Views/Components/Common/ExampleCheckbox.swift
 //  Created by 정희석 on 01/15/26.
 //
 
 import SwiftUI
 
-struct ExampleCheckbox: View {
-    let label: String
+struct ExampleCheckbox<Label: View>: View {
     @Binding var isChecked: Bool
+    @ViewBuilder let label: () -> Label
 
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
@@ -19,14 +20,24 @@ struct ExampleCheckbox: View {
                 Image(systemName: isChecked ? "checkmark.square.fill" : "square")
                     .resizable()
                     .frame(width: 16, height: 16)
-                    .foregroundStyle(isChecked ? AppColor.brand : AppColor.textSecondary)
+                    .foregroundStyle(AppColor.checkboxColor)
             }
 
+            label()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// String 라벨을 사용하는 편의 이니셜라이저
+extension ExampleCheckbox where Label == Text {
+    init(label: String, isChecked: Binding<Bool>) {
+        self._isChecked = isChecked
+        self.label = {
             Text(label)
                 .font(.system(size: 13))
                 .foregroundStyle(AppColor.textSecondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

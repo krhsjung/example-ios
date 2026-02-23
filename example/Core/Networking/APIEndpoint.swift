@@ -22,6 +22,9 @@ struct APIConfiguration {
     /// SSL 피닝 대상 도메인
     static let pinnedDomain = "hsjung.asuscomm.com"
 
+    /// OAuth 콜백 URL 스킴 (Info.plist URL Schemes와 일치 필요)
+    static let callbackURLScheme = "example"
+
     /// SSL 피닝 공개 키 해시 (SHA-256, Base64)
     ///
     /// 서버 인증서의 공개 키 해시를 설정합니다.
@@ -50,7 +53,7 @@ enum APIEndpoint {
     case logOut
     case refresh
     case signUp
-    case oauth(_ snsProvider: SnsProvider)
+    case oauth(_ socialProvider: SocialProvider)
     case appleSignIn
 
     // User
@@ -72,8 +75,8 @@ enum APIEndpoint {
             return "/auth/refresh"
         case .signUp:
             return "/auth/register/mobile"
-        case .oauth(let snsProvider):
-            return "/auth/\(snsProvider.rawValue)?flow=ios&prompt=select_account"
+        case .oauth(let socialProvider):
+            return "/auth/\(socialProvider.rawValue)?flow=ios&prompt=select_account"
         case .appleSignIn:
             return "/auth/apple/native"
 

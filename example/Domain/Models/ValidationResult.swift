@@ -9,7 +9,7 @@
 import Foundation
 
 // MARK: - ValidationResult
-enum ValidationResult {
+enum ValidationResult: Sendable {
     case success
     case failure(String)
 

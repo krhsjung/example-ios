@@ -20,23 +20,20 @@ import AuthenticationServices
 ///
 /// 사용 예시:
 /// ```swift
-/// // 로그인
-/// try await AuthManager.shared.logIn(request: LogInRequest(email: "user@example.com", password: "password"))
+/// let authManager = ServiceContainer.shared.authManager
 ///
-/// // SNS 로그인
-/// try await AuthManager.shared.signInWith(.google)
+/// // 로그인
+/// try await authManager.logIn(request: LogInRequest(email: "user@example.com", password: "password"))
+///
+/// // 소셜 로그인
+/// try await authManager.signInWith(.google)
 ///
 /// // 로그아웃
-/// await AuthManager.shared.logOut()
+/// await authManager.logOut()
 /// ```
 @MainActor
 @Observable
 final class AuthManager {
-    // MARK: - Singleton
-
-    /// 공유 인스턴스
-    static let shared = AuthManager()
-
     // MARK: - Observable Properties
 
     /// 현재 로그인 상태
@@ -62,27 +59,44 @@ final class AuthManager {
     @ObservationIgnored
     private var isOAuthInProgress: Bool = false
 
+    /// Apple Sign In delegate 강한 참조
+    /// - ASAuthorizationController.delegate는 weak 참조이므로 별도 보유 필요
+    /// - 인증 완료/실패 시 nil로 해제
+    @ObservationIgnored
+    private var appleSignInDelegate: AppleSignInDelegate?
+
     // MARK: - Dependencies
 
     /// 인증 관련 API 호출을 담당하는 서비스
     private let authService: AuthServiceProtocol
 
     /// Keychain 매니저 (토큰 저장/조회)
-    private let keychain = KeychainManager.shared
+    private let keychain: KeychainManager
 
-    // MARK: - Configuration
+    /// 보안 쿠키 저장소
+    private let cookieStorage: SecureCookieStorage
 
-    /// OAuth 콜백 URL 스킴
-    /// - Info.plist의 URL Schemes와 일치해야 함
-    /// - 서버에서 인증 완료 후 앱으로 리다이렉트할 때 사용
-    private let callbackURLScheme = "example"
+    /// 오프라인 캐시 매니저
+    private let cacheManager: CacheManager
 
     // MARK: - Initialization
 
-    /// 프라이빗 이니셜라이저 (싱글톤 패턴)
-    /// - Parameter authService: 인증 서비스 (테스트 시 mock 주입 가능)
-    private init(authService: AuthServiceProtocol? = nil) {
-        self.authService = authService ?? AuthService.shared
+    /// 이니셜라이저 (의존성 주입)
+    /// - Parameters:
+    ///   - authService: 인증 서비스
+    ///   - keychain: Keychain 매니저
+    ///   - cookieStorage: 보안 쿠키 저장소
+    ///   - cacheManager: 오프라인 캐시 매니저
+    init(
+        authService: AuthServiceProtocol,
+        keychain: KeychainManager,
+        cookieStorage: SecureCookieStorage,
+        cacheManager: CacheManager
+    ) {
+        self.authService = authService
+        self.keychain = keychain
+        self.cookieStorage = cookieStorage
+        self.cacheManager = cacheManager
     }
 
     // MARK: - Session Management
@@ -107,10 +121,28 @@ final class AuthManager {
 
             do {
                 // 저장된 토큰으로 사용자 정보 조회 시도
-                currentUser = try await authService.me()
+                let user = try await authService.me()
+                currentUser = user
                 isLoggedIn = true
+                cacheManager.saveUser(user)
+            } catch let error as NetworkError {
+                switch error {
+                case .noConnection, .timeout:
+                    // 오프라인: 캐싱된 데이터로 폴백
+                    if let cachedUser = cacheManager.loadUser() {
+                        Log.custom(category: "Auth", "Offline - using cached user: \(cachedUser.email)")
+                        currentUser = cachedUser
+                        isLoggedIn = true
+                    } else {
+                        currentUser = nil
+                        isLoggedIn = false
+                    }
+                default:
+                    // 서버 에러 (401 등): 로그아웃 처리
+                    currentUser = nil
+                    isLoggedIn = false
+                }
             } catch {
-                // 토큰 만료 또는 네트워크 오류 시 로그아웃 상태로 설정
                 currentUser = nil
                 isLoggedIn = false
             }
@@ -152,16 +184,15 @@ final class AuthManager {
     // MARK: - Private Token Methods
 
     /// 인증 응답에서 토큰을 Keychain에 저장하고 사용자 상태 업데이트
-    private func handleAuthResponse(_ response: AuthResponse) {
-        do {
-            try keychain.save(key: .accessToken, value: response.accessToken)
-            try keychain.save(key: .refreshToken, value: response.refreshToken)
-        } catch {
-            Log.error("Failed to save tokens to Keychain:", error.localizedDescription)
-        }
+    ///
+    /// - Throws: Keychain 저장 실패 시 에러 전파 (토큰 미저장 상태로 로그인 처리 방지)
+    private func handleAuthResponse(_ response: AuthResponse) throws {
+        try keychain.save(key: .accessToken, value: response.accessToken)
+        try keychain.save(key: .refreshToken, value: response.refreshToken)
 
         currentUser = response.user
         isLoggedIn = true
+        cacheManager.saveUser(response.user)
     }
 
     // MARK: - Private Security Methods
@@ -173,10 +204,13 @@ final class AuthManager {
         isLoggedIn = false
 
         // 보안 쿠키 저장소 삭제 (Keychain + 메모리)
-        SecureCookieStorage.shared.deleteAllCookies()
+        cookieStorage.deleteAllCookies()
 
         // Keychain의 모든 인증 데이터 삭제 (토큰 포함)
         keychain.deleteAll()
+
+        // 오프라인 캐시 삭제
+        cacheManager.clearAll()
 
         Log.custom(category: "Security", "All sensitive data cleared on logout")
     }
@@ -191,7 +225,7 @@ final class AuthManager {
         try Task.checkCancellation()
         let response = try await authService.logIn(request)
         try Task.checkCancellation()
-        handleAuthResponse(response)
+        try handleAuthResponse(response)
     }
 
     /// 이메일과 비밀번호로 회원가입
@@ -202,12 +236,12 @@ final class AuthManager {
         try Task.checkCancellation()
         let response = try await authService.signUp(request)
         try Task.checkCancellation()
-        handleAuthResponse(response)
+        try handleAuthResponse(response)
     }
 
     // MARK: - Social Authentication
 
-    /// SNS 제공자를 통한 소셜 로그인
+    /// 소셜 제공자를 통한 소셜 로그인
     ///
     /// - Parameter provider: 소셜 로그인 제공자 (.google, .apple, .native)
     /// - Throws: 인증 취소 또는 실패 시 `NetworkError` 발생, Task 취소 시 `NetworkError.cancelled` 발생
@@ -215,7 +249,7 @@ final class AuthManager {
     /// - Note:
     ///   - `.native`: iOS 네이티브 Apple Sign In 사용
     ///   - `.google`, `.apple`: 웹 기반 OAuth 플로우 사용
-    func signInWith(_ provider: SnsProvider) async throws {
+    func signInWith(_ provider: SocialProvider) async throws {
         try Task.checkCancellation()
 
         isOAuthInProgress = true
@@ -238,7 +272,7 @@ final class AuthManager {
     ///
     /// - Parameter provider: OAuth 제공자 (.google 또는 .apple)
     /// - Throws: URL 생성 실패, 인증 취소, 토큰 교환 실패, Task 취소 시 에러 발생
-    private func signInWithWebOAuth(provider: SnsProvider) async throws {
+    private func signInWithWebOAuth(provider: SocialProvider) async throws {
         let endpoint = APIEndpoint.oauth(provider)
 
         guard let authURL = URL(string: endpoint.url) else {
@@ -253,7 +287,7 @@ final class AuthManager {
         // 3. 인증 코드를 서버에서 액세스 토큰으로 교환
         let response = try await authService.exchange(ExchangeRequest(code: code))
         try Task.checkCancellation()
-        handleAuthResponse(response)
+        try handleAuthResponse(response)
     }
 
     /// 시스템 브라우저를 사용한 OAuth 세션 시작
@@ -265,7 +299,7 @@ final class AuthManager {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
                 url: url,
-                callbackURLScheme: callbackURLScheme
+                callbackURLScheme: APIConfiguration.callbackURLScheme
             ) { callbackURL, error in
                 // 에러 처리
                 if let error = error {
@@ -328,7 +362,7 @@ final class AuthManager {
         // 3. 서버에 Apple 인증 정보 전송 및 사용자 정보 수신
         let response = try await authService.appleSignIn(request)
         try Task.checkCancellation()
-        handleAuthResponse(response)
+        try handleAuthResponse(response)
     }
 
     /// Apple Sign In 인증 UI 표시 및 결과 대기
@@ -343,12 +377,13 @@ final class AuthManager {
             request.requestedScopes = [.fullName, .email]
 
             let controller = ASAuthorizationController(authorizationRequests: [request])
-            let delegate = AppleSignInDelegate(continuation: continuation)
+            let delegate = AppleSignInDelegate { [weak self] in
+                self?.appleSignInDelegate = nil
+            }
+            delegate.continuation = continuation
 
-            // delegate를 controller에 연결하여 메모리 해제 방지
-            // (controller가 해제되면 delegate도 함께 해제되도록)
-            objc_setAssociatedObject(controller, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
-
+            // delegate를 인스턴스 프로퍼티로 보유하여 인증 완료까지 해제 방지
+            self.appleSignInDelegate = delegate
             controller.delegate = delegate
             controller.presentationContextProvider = PresentationContextProvider.shared
             controller.performRequests()
@@ -392,29 +427,34 @@ final class AuthManager {
 /// CheckedContinuation으로 브릿징하여 async/await 패턴으로 사용 가능하게 합니다.
 private final class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate {
     /// 인증 결과를 전달할 continuation
-    private let continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>
+    var continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>?
 
-    /// - Parameter continuation: 인증 완료/실패 시 결과를 전달할 continuation
-    init(continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>) {
-        self.continuation = continuation
+    /// 인증 완료 시 AuthManager의 강한 참조를 해제하는 클로저
+    private let onComplete: () -> Void
+
+    /// - Parameter onComplete: 인증 완료/실패 시 호출되어 delegate 참조를 해제
+    init(onComplete: @escaping () -> Void) {
+        self.onComplete = onComplete
     }
 
     /// 인증 성공 시 호출
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        defer { onComplete() }
         if let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            continuation.resume(returning: credential)
+            continuation?.resume(returning: credential)
         } else {
-            continuation.resume(throwing: NetworkError.custom(Localized.Error.errorOauthCallbackFailed))
+            continuation?.resume(throwing: NetworkError.custom(Localized.Error.errorOauthCallbackFailed))
         }
     }
 
     /// 인증 실패 시 호출
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        defer { onComplete() }
         if let authError = error as? ASAuthorizationError, authError.code == .canceled {
             // 사용자가 인증 취소
-            continuation.resume(throwing: NetworkError.custom(Localized.Error.errorLoginCancelled))
+            continuation?.resume(throwing: NetworkError.custom(Localized.Error.errorLoginCancelled))
         } else {
-            continuation.resume(throwing: NetworkError.unknown(error))
+            continuation?.resume(throwing: NetworkError.unknown(error))
         }
     }
 }
@@ -436,14 +476,25 @@ private final class PresentationContextProvider: NSObject,
     }
 
     /// 현재 활성화된 윈도우를 반환
-    /// - 앱의 첫 번째 UIWindowScene에서 첫 번째 윈도우를 찾음
-    /// - 찾지 못하면 빈 윈도우 반환 (폴백)
+    /// 모든 UIWindowScene을 탐색하여 key window → 첫 번째 visible window 순으로 찾음
     private var presentationAnchor: ASPresentationAnchor {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first else {
-            return ASPresentationAnchor()
+        let windowScenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+
+        // key window 우선 탐색
+        for scene in windowScenes {
+            if let keyWindow = scene.windows.first(where: { $0.isKeyWindow }) {
+                return keyWindow
+            }
         }
-        return window
+
+        // key window가 없으면 첫 번째 윈도우 반환
+        if let firstWindow = windowScenes.first?.windows.first {
+            return firstWindow
+        }
+
+        Log.error("No valid window found for presentation anchor")
+        return ASPresentationAnchor()
     }
 
     /// ASWebAuthenticationSession용 프레젠테이션 앵커 제공

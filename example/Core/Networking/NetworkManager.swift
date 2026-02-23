@@ -107,8 +107,6 @@ protocol NetworkManagerProtocol {
 
 // MARK: - Network Manager
 final class NetworkManager: NetworkManagerProtocol {
-    static let shared = NetworkManager()
-
     private let session: URLSession
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
@@ -118,12 +116,33 @@ final class NetworkManager: NetworkManagerProtocol {
     private let sslPinningDelegate: SSLPinningDelegate?
 
     /// 보안 쿠키 저장소
-    private let secureCookieStorage = SecureCookieStorage.shared
+    private let secureCookieStorage: SecureCookieStorage
+
+    /// Keychain 매니저 (토큰 저장/조회)
+    private let keychain: KeychainManager
+
+    /// 강제 로그아웃 핸들러 (순환 의존성 해결용)
+    /// ServiceContainer에서 AuthManager 생성 후 설정
+    var onForceLogout: (@MainActor @Sendable () -> Void)?
+
+    /// 가변 상태(`refreshTask`, `inFlightGETRequests`) 동시 접근 보호용 Lock
+    /// `await` 지점 전에 반드시 unlock하여 데드락 방지
+    private let stateLock = NSLock()
 
     /// 토큰 리프레시 동시 호출 방지용 Task
     private var refreshTask: Task<AuthResponse, Error>?
 
-    private init(retryConfiguration: RetryConfiguration = .default) {
+    /// GET 요청 중복 방지용 in-flight 요청 저장소 (URL을 키로 사용)
+    /// 동일한 URL에 대한 GET 요청이 동시에 발생하면 하나의 네트워크 호출만 수행
+    private var inFlightGETRequests: [String: Task<(Data, URLResponse), Error>] = [:]
+
+    init(
+        secureCookieStorage: SecureCookieStorage,
+        keychain: KeychainManager,
+        retryConfiguration: RetryConfiguration = .default
+    ) {
+        self.secureCookieStorage = secureCookieStorage
+        self.keychain = keychain
         self.retryConfiguration = retryConfiguration
 
         let configuration = URLSessionConfiguration.default
@@ -165,7 +184,7 @@ final class NetworkManager: NetworkManagerProtocol {
         // 인증 필요 엔드포인트: 토큰 검증 후 Authorization 헤더 자동 주입
         var mergedHeaders = headers ?? [:]
         if endpoint.requiresAuth {
-            guard let accessToken = KeychainManager.shared.loadString(key: .accessToken) else {
+            guard let accessToken = keychain.loadString(key: .accessToken) else {
                 throw NetworkError.custom(Localized.Error.errorUnauthorized)
             }
             mergedHeaders["Authorization"] = "Bearer \(accessToken)"
@@ -205,12 +224,12 @@ final class NetworkManager: NetworkManagerProtocol {
 
             case "server_auth_session_invalid", "server_auth_token_invalid":
                 // 세션/토큰 무효 → 재로그인 필요
-                await forceLogout()
+                forceLogout()
                 throw error
 
             default:
                 // 알 수 없는 401 에러 → 재로그인 처리
-                await forceLogout()
+                forceLogout()
                 throw error
             }
         }
@@ -236,54 +255,63 @@ final class NetworkManager: NetworkManagerProtocol {
     /// - Returns: 새로운 토큰이 포함된 `AuthResponse`
     /// - Throws: 리프레시 실패 시 에러 (재로그인 필요)
     private func refreshTokens() async throws -> AuthResponse {
-        // 이미 리프레시 진행 중이면 해당 Task의 결과를 대기
-        if let existingTask = refreshTask {
-            return try await existingTask.value
-        }
-
-        let task = Task<AuthResponse, Error> {
-            defer { refreshTask = nil }
-
-            guard let refreshToken = KeychainManager.shared.loadString(key: .refreshToken) else {
-                await forceLogout()
-                throw NetworkError.custom(Localized.Error.errorUnauthorized)
+        // withLock으로 refreshTask 읽기/쓰기를 원자적으로 수행
+        // isCreator: 이 호출이 Task를 생성했는지 여부 (실패 시 forceLogout 책임 구분)
+        let (taskToAwait, isCreator) = stateLock.withLock { () -> (Task<AuthResponse, Error>, Bool) in
+            // 이미 리프레시 진행 중이면 해당 Task 반환
+            if let existing = refreshTask {
+                return (existing, false)
             }
 
-            Log.custom(category: "Auth", "Token expired, attempting refresh...")
+            let task = Task<AuthResponse, Error> { [self] in
+                defer {
+                    stateLock.withLock { refreshTask = nil }
+                }
 
-            let body = RefreshRequest(refreshToken: refreshToken)
-            let response: AuthResponse = try await performRequest(
-                url: APIEndpoint.refresh.url,
-                method: .post,
-                body: body,
-                headers: nil
-            )
+                guard let refreshToken = keychain.loadString(key: .refreshToken) else {
+                    forceLogout()
+                    throw NetworkError.custom(Localized.Error.errorUnauthorized)
+                }
 
-            // 새 토큰 Keychain에 저장
-            _ = try? KeychainManager.shared.save(key: .accessToken, value: response.accessToken)
-            _ = try? KeychainManager.shared.save(key: .refreshToken, value: response.refreshToken)
+                Log.custom(category: "Auth", "Token expired, attempting refresh...")
 
-            Log.custom(category: "Auth", "Token refresh successful")
-            return response
+                let body = RefreshRequest(refreshToken: refreshToken)
+                let response: AuthResponse = try await performRequest(
+                    url: APIEndpoint.refresh.url,
+                    method: .post,
+                    body: body,
+                    headers: nil
+                )
+
+                // 새 토큰 Keychain에 저장
+                try keychain.save(key: .accessToken, value: response.accessToken)
+                try keychain.save(key: .refreshToken, value: response.refreshToken)
+
+                Log.custom(category: "Auth", "Token refresh successful")
+                return response
+            }
+
+            refreshTask = task
+            return (task, true)
         }
 
-        refreshTask = task
-
         do {
-            return try await task.value
+            return try await taskToAwait.value
         } catch {
-            // 리프레시 실패 → 재로그인 필요
-            Log.error("Token refresh failed:", error.localizedDescription)
-            await forceLogout()
+            if isCreator {
+                // 리프레시 실패 → 재로그인 필요 (Task 생성자만 처리)
+                Log.error("Token refresh failed:", error.localizedDescription)
+                forceLogout()
+            }
             throw error
         }
     }
 
-    /// 강제 로그아웃 처리 (AuthManager에 알림)
+    /// 강제 로그아웃 처리 (onForceLogout 클로저를 통해 AuthManager에 알림)
     @MainActor
-    private func forceLogout() async {
+    private func forceLogout() {
         Log.custom(category: "Auth", "Force logout - re-login required")
-        AuthManager.shared.handleForceLogout()
+        onForceLogout?()
     }
 
     // MARK: - Private Methods
@@ -369,10 +397,15 @@ final class NetworkManager: NetworkManagerProtocol {
         let data: Data
         let response: URLResponse
 
-        do {
-            (data, response) = try await session.data(for: urlRequest)
-        } catch {
-            throw mapURLSessionError(error)
+        // GET 요청은 Request Coalescing 적용 (동일 URL 중복 호출 방지)
+        if method == .get {
+            (data, response) = try await coalescedFetch(for: urlRequest, key: url)
+        } else {
+            do {
+                (data, response) = try await session.data(for: urlRequest)
+            } catch {
+                throw mapURLSessionError(error)
+            }
         }
 
         // 응답에서 쿠키 추출하여 SecureCookieStorage에 저장
@@ -385,9 +418,9 @@ final class NetworkManager: NetworkManagerProtocol {
 
         try validateResponse(response, data: data)
 
-        // EmptyResponse 타입인 경우 빈 JSON 객체로 디코딩
-        if T.self == EmptyResponse.self {
-            return EmptyResponse() as! T
+        // EmptyResponse 타입인 경우 디코딩 생략
+        if T.self == EmptyResponse.self, let result = EmptyResponse() as? T {
+            return result
         }
 
         do {
@@ -395,6 +428,41 @@ final class NetworkManager: NetworkManagerProtocol {
         } catch {
             throw NetworkError.decodingError(error)
         }
+    }
+
+    /// GET 요청 중복 방지 (Request Coalescing)
+    ///
+    /// 동일한 URL에 대한 GET 요청이 동시에 발생하면 하나의 네트워크 호출만 수행하고
+    /// 모든 호출자에게 동일한 응답을 반환합니다.
+    /// `refreshTask`와 동일한 패턴을 사용합니다.
+    private func coalescedFetch(for urlRequest: URLRequest, key: String) async throws -> (Data, URLResponse) {
+        // withLock으로 inFlightGETRequests 읽기/쓰기를 원자적으로 수행
+        let (taskToAwait, isCoalesced) = stateLock.withLock { () -> (Task<(Data, URLResponse), Error>, Bool) in
+            // 동일 URL에 대한 in-flight 요청이 있으면 해당 Task 반환
+            if let existing = inFlightGETRequests[key] {
+                return (existing, true)
+            }
+
+            let task = Task<(Data, URLResponse), Error> { [self] in
+                defer {
+                    stateLock.withLock { inFlightGETRequests[key] = nil }
+                }
+                do {
+                    return try await session.data(for: urlRequest)
+                } catch {
+                    throw mapURLSessionError(error)
+                }
+            }
+
+            inFlightGETRequests[key] = task
+            return (task, false)
+        }
+
+        if isCoalesced {
+            Log.network("Request coalesced: \(key)")
+        }
+
+        return try await taskToAwait.value
     }
 
     /// URLSession 에러를 NetworkError로 매핑

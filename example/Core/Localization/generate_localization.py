@@ -28,6 +28,16 @@ def to_camel_case(snake_str):
     return components[0] + ''.join(x.title() for x in components[1:])
 
 
+def table_name_to_method(name):
+    """
+    테이블 이름을 Swift 메서드명으로 변환 (lowerCamelCase)
+    예: ServerError -> serverError, Auth -> auth
+    """
+    if not name:
+        return name
+    return name[0].lower() + name[1:]
+
+
 def sanitize_key(key, prefix_to_remove=None):
     """
     키를 Swift 변수명으로 사용 가능하도록 변환
@@ -94,7 +104,7 @@ def generate_enum_cases(table_name, keys, use_grouping=False):
                     var_name = f"{original_var_name}{counter}"
                     counter += 1
                 seen_var_names.add(var_name)
-                cases.append(f'        static let {var_name} = String.{table_name.lower()}("{key}")')
+                cases.append(f'        static let {var_name} = String.{table_name_to_method(table_name)}("{key}")')
             if len(groups) > 1:
                 cases.append('')
     else:
@@ -106,7 +116,7 @@ def generate_enum_cases(table_name, keys, use_grouping=False):
                 var_name = f"{original_var_name}{counter}"
                 counter += 1
             seen_var_names.add(var_name)
-            cases.append(f'        static let {var_name} = String.{table_name.lower()}("{key}")')
+            cases.append(f'        static let {var_name} = String.{table_name_to_method(table_name)}("{key}")')
 
     result = '\n'.join(cases)
     if result.endswith('\n'):
@@ -128,7 +138,7 @@ def generate_swift_file(tables_data):
         method = f'''    /// {table_name}.xcstrings에서 문자열 가져오기
     /// - Parameter key: 다국어 키
     /// - Returns: 현재 언어로 번역된 문자열
-    static func {table_name.lower()}(_ key: String) -> String {{
+    static func {table_name_to_method(table_name)}(_ key: String) -> String {{
         String(localized: String.LocalizationValue(key), table: "{table_name}")
     }}'''
         extension_methods.append(method)
@@ -140,7 +150,7 @@ def generate_swift_file(tables_data):
     ///   - key: 다국어 키
     ///   - arguments: 문자열에 삽입할 값들
     /// - Returns: 현재 언어로 번역되고 파라미터가 삽입된 문자열
-    static func {table_name.lower()}(_ key: String, _ arguments: CVarArg...) -> String {{
+    static func {table_name_to_method(table_name)}(_ key: String, _ arguments: CVarArg...) -> String {{
         let format = String(localized: String.LocalizationValue(key), table: "{table_name}")
         return String(format: format, arguments: arguments)
     }}'''

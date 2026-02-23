@@ -1,8 +1,8 @@
 //
-//  DividerWithText.swift
+//  ExampleDividerWithText.swift
 //  example
 //
-//  Path: Presentation/Views/Components/Auth/DividerWithText.swift
+//  Path: Presentation/Views/Components/Common/ExampleDividerWithText.swift
 //  Created by 정희석 on 12/25/25.
 //
 

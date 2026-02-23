@@ -17,20 +17,18 @@ import Security
 ///
 /// 사용 예시:
 /// ```swift
+/// let keychain = ServiceContainer.shared.keychain
+///
 /// // 저장
-/// try KeychainManager.shared.save(key: .accessToken, data: tokenData)
+/// try keychain.save(key: .accessToken, data: tokenData)
 ///
 /// // 조회
-/// let token: String? = KeychainManager.shared.load(key: .accessToken)
+/// let token: String? = keychain.loadString(key: .accessToken)
 ///
 /// // 삭제
-/// KeychainManager.shared.delete(key: .accessToken)
+/// keychain.delete(key: .accessToken)
 /// ```
 final class KeychainManager: Sendable {
-    // MARK: - Singleton
-
-    static let shared = KeychainManager()
-
     // MARK: - Key
     /// Keychain 저장 키 정의
     enum Key: String {
@@ -51,7 +49,7 @@ final class KeychainManager: Sendable {
 
     // MARK: - Initialization
 
-    private init(service: String = Bundle.main.bundleIdentifier ?? "com.example") {
+    init(service: String = Bundle.main.bundleIdentifier ?? "com.example") {
         self.service = service
     }
 

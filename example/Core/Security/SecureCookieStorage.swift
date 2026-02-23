@@ -21,17 +21,15 @@ import Foundation
 ///
 /// 사용 예시:
 /// ```swift
+/// let cookieStorage = ServiceContainer.shared.cookieStorage
+///
 /// // 쿠키 저장 (응답 헤더에서)
-/// SecureCookieStorage.shared.saveCookies(from: httpResponse, for: url)
+/// cookieStorage.saveCookies(from: httpResponse, for: url)
 ///
 /// // 쿠키 적용 (요청 헤더에)
-/// let headers = SecureCookieStorage.shared.cookieHeaders(for: url)
+/// let headers = cookieStorage.cookieHeaders(for: url)
 /// ```
 final class SecureCookieStorage: @unchecked Sendable {
-    // MARK: - Singleton
-
-    static let shared = SecureCookieStorage()
-
     // MARK: - Private Properties
 
     /// 메모리 캐시 (빠른 접근용)
@@ -41,11 +39,12 @@ final class SecureCookieStorage: @unchecked Sendable {
     private let queue = DispatchQueue(label: "com.example.secureCookieStorage", attributes: .concurrent)
 
     /// Keychain 매니저
-    private let keychain = KeychainManager.shared
+    private let keychain: KeychainManager
 
     // MARK: - Initialization
 
-    private init() {
+    init(keychain: KeychainManager) {
+        self.keychain = keychain
         loadFromKeychain()
     }
 
@@ -119,7 +118,9 @@ final class SecureCookieStorage: @unchecked Sendable {
         queue.async(flags: .barrier) { [weak self] in
             guard let self else { return }
             self.memoryCookies.removeAll()
-            self.keychain.delete(key: .cookies)
+            if !self.keychain.delete(key: .cookies) {
+                Log.error("Failed to delete cookies from Keychain")
+            }
 
             // 기본 HTTPCookieStorage도 정리
             if let cookies = HTTPCookieStorage.shared.cookies {
@@ -156,7 +157,7 @@ final class SecureCookieStorage: @unchecked Sendable {
     private func saveToKeychain() {
         guard let data = try? NSKeyedArchiver.archivedData(
             withRootObject: memoryCookies,
-            requiringSecureCoding: false
+            requiringSecureCoding: true
         ) else {
             Log.error("Failed to archive cookies for Keychain")
             return
@@ -169,18 +170,23 @@ final class SecureCookieStorage: @unchecked Sendable {
         }
     }
 
-    /// Keychain에서 쿠키 로드 (NSKeyedUnarchiver 사용)
+    /// Keychain에서 쿠키 로드 (NSKeyedUnarchiver secure coding 사용)
     private func loadFromKeychain() {
         guard let data = keychain.loadData(key: .cookies) else { return }
 
         do {
-            let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-            unarchiver.requiresSecureCoding = false
-            guard let cookies = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? [HTTPCookie] else {
+            // HTTPCookie가 내부적으로 사용하는 Foundation 타입들을 허용 목록에 포함
+            let allowedClasses: [AnyClass] = [
+                NSArray.self, HTTPCookie.self, NSDictionary.self,
+                NSString.self, NSNumber.self, NSDate.self, NSURL.self
+            ]
+            guard let cookies = try NSKeyedUnarchiver.unarchivedObject(
+                ofClasses: allowedClasses,
+                from: data
+            ) as? [HTTPCookie] else {
                 Log.error("Failed to decode cookies from Keychain")
                 return
             }
-            unarchiver.finishDecoding()
 
             memoryCookies = cookies
             removeExpiredCookies()

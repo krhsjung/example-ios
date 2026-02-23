@@ -12,8 +12,8 @@ import os.log
 // MARK: - OSLog Extension
 
 extension OSLog {
-    /// 앱의 Bundle Identifier를 subsystem으로 사용
-    static let subsystem = Bundle.main.bundleIdentifier!
+    /// 앱의 Bundle Identifier를 subsystem으로 사용 (테스트 환경 대비 기본값 제공)
+    static let subsystem = Bundle.main.bundleIdentifier ?? "com.example.app"
 
     /// 네트워크 관련 로그
     static let network = OSLog(subsystem: subsystem, category: "Network")
@@ -124,15 +124,17 @@ struct Log {
         let logger = Logger(subsystem: OSLog.subsystem, category: level.category)
         let logMessage = "\(message) \(extraMessage)"
 
+        // .public: Sysdiagnose에 평문 노출 (디버깅 편의)
+        // .private: Sysdiagnose에서 <redacted> 처리 (민감 데이터 보호)
         switch level {
         case .debug, .custom:
             logger.debug("\(logMessage, privacy: .public)")
         case .info:
-            logger.info("\(logMessage, privacy: .public)")
+            logger.info("\(logMessage, privacy: .private)")
         case .network:
-            logger.log("\(logMessage, privacy: .public)")
+            logger.log("\(logMessage, privacy: .private)")
         case .error:
-            logger.error("\(logMessage, privacy: .public)")
+            logger.error("\(logMessage, privacy: .private)")
         }
         #endif
     }

@@ -1,36 +1,36 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "login_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Log in to Your Account"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "계정에 로그인하기"
-          }
-        }
-      }
-    },
     "login_subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter your email and password to log in, or use a social account."
+            "value" : "Sign in to your account"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이메일과 비밀번호를 입력하거나 소셜 계정으로 로그인하세요."
+            "value" : "계정에 로그인하세요"
+          }
+        }
+      }
+    },
+    "login_forget_password" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forgot your password?"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비밀번호를 잊으셨나요?"
           }
         }
       }
@@ -52,19 +52,19 @@
         }
       }
     },
-    "signup_title" : {
+    "login_no_account" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create Your Account"
+            "value" : "Don't have an account?"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "계정 만들기"
+            "value" : "계정이 없으신가요?"
           }
         }
       }
@@ -75,30 +75,75 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign up easily and get started"
+            "value" : "Create a new account"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "간편하게 가입하고 시작하세요"
+            "value" : "새로운 계정을 만드세요"
           }
         }
       }
     },
-    "signup_agree_to_terms" : {
+    "signup_terms_of_service" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I agree to the terms and conditions"
+            "value" : "Terms of Service"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이용약관에 동의합니다"
+            "value" : "이용약관"
+          }
+        }
+      }
+    },
+    "signup_and" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " and "
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 및 "
+          }
+        }
+      }
+    },
+    "signup_privacy_policy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "개인정보처리방침"
+          }
+        }
+      }
+    },
+    "signup_agree_suffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에 동의합니다"
           }
         }
       }

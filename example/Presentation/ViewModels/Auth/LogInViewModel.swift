@@ -13,26 +13,17 @@ import Observation
 ///
 /// 기능:
 /// - 이메일/비밀번호 로그인
-/// - SNS 로그인 (부모 클래스에서 상속)
-/// - 회원가입 화면 네비게이션
+/// - 소셜 로그인 (부모 클래스에서 상속)
 @MainActor
 @Observable
 final class LogInViewModel: BaseAuthViewModel {
-    // MARK: - Observable Properties
-
-    /// 이메일 입력값
-    var email: String = ""
-
-    /// 비밀번호 입력값
-    var password: String = ""
-
-    /// 회원가입 화면 이동 플래그
-    var isNavigateToSignUp: Bool = false
-
     // MARK: - Initialization
 
-    override init() {
-        super.init()
+    override init(
+        authManager: AuthManager = ServiceContainer.shared.authManager,
+        validator: AuthValidating = ServiceContainer.shared.authValidator
+    ) {
+        super.init(authManager: authManager, validator: validator)
         #if DEBUG
         self.email = TestFixtures.Auth.email
         self.password = TestFixtures.Auth.password
@@ -40,6 +31,7 @@ final class LogInViewModel: BaseAuthViewModel {
     }
 
     // MARK: - Private Properties
+
     private var formData: LogInFormData {
         LogInFormData(
             email: email,
@@ -50,14 +42,17 @@ final class LogInViewModel: BaseAuthViewModel {
     // MARK: - Public Methods
 
     /// 일반 로그인 처리
+    /// 전체 필드 검증 후 각 필드에 인라인 에러 표시, 서버 에러는 alert로 표시
     func logIn() {
-        let validationResult = formData.validateAll()
+        // 필드별 검증 결과를 각각 매핑
+        let emailResult = validator.validateEmail(email)
+        let passwordResult = validator.validatePassword(password)
 
-        guard validationResult.isValid else {
-            errorMessage = validationResult.errorMessage
-            showError = true
-            return
-        }
+        emailError = emailResult.isValid ? nil : emailResult.errorMessage
+        passwordError = passwordResult.isValid ? nil : passwordResult.errorMessage
+
+        // 검증 실패 시 서버 호출하지 않음
+        guard emailResult.isValid && passwordResult.isValid else { return }
 
         let request = formData.toLogInRequest()
 
@@ -66,8 +61,4 @@ final class LogInViewModel: BaseAuthViewModel {
         }
     }
 
-    /// 회원가입 화면으로 이동
-    func navigateToSignUp() {
-        isNavigateToSignUp = true
-    }
 }

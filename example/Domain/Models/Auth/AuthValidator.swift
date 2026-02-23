@@ -1,5 +1,5 @@
 //
-//  Validator.swift
+//  AuthValidator.swift
 //  example
 //
 //  Path: Domain/Models/Auth/AuthValidator.swift
@@ -21,19 +21,26 @@ protocol AuthValidating {
 // MARK: - Auth Validator
 /// 인증 관련 유효성 검사 구현체
 struct AuthValidator: AuthValidating {
-    /// 공유 인스턴스 (기본값으로 사용)
-    static let shared = AuthValidator()
+    // MARK: - Validation Constants
+
+    /// 비밀번호 최소 길이 (서버 정책과 동일하게 유지)
+    private static let minPasswordLength = 8
+
+    /// 이름 최소 길이
+    private static let minNameLength = 2
 
     // MARK: - Email Validation
     func validateEmail(_ email: String) -> ValidationResult {
-        guard !email.isEmpty else {
+        let trimmedEmail = email.trimmingCharacters(in: .whitespaces)
+
+        guard !trimmedEmail.isEmpty else {
             return .failure(Localized.Error.errorEmptyEmail)
         }
 
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
 
-        guard emailPredicate.evaluate(with: email) else {
+        guard emailPredicate.evaluate(with: trimmedEmail) else {
             return .failure(Localized.Error.errorInvalidEmail)
         }
 
@@ -46,7 +53,7 @@ struct AuthValidator: AuthValidating {
             return .failure(Localized.Error.errorEmptyPassword)
         }
 
-        guard password.count >= 8 else {
+        guard password.count >= Self.minPasswordLength else {
             return .failure(Localized.Error.errorWeakPassword)
         }
 
@@ -81,7 +88,7 @@ struct AuthValidator: AuthValidating {
         }
 
         guard password == confirmPassword else {
-            return .failure(Localized.Error.errorPasswordNotMatch)
+            return .failure(Localized.Error.errorPasswordMismatch)
         }
 
         return .success
@@ -89,11 +96,13 @@ struct AuthValidator: AuthValidating {
 
     // MARK: - Name Validation
     func validateName(_ name: String) -> ValidationResult {
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+
+        guard !trimmedName.isEmpty else {
             return .failure(Localized.Error.errorEmptyUsername)
         }
 
-        guard name.count >= 2 else {
+        guard trimmedName.count >= Self.minNameLength else {
             return .failure(Localized.Error.errorNameMinLength)
         }
 

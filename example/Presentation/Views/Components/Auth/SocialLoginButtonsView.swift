@@ -9,22 +9,22 @@
 import SwiftUI
 
 struct SocialLoginButtonsView: View {
-    let onSnsLogin: (_ snsProvider: SnsProvider) -> Void
+    let onSocialLogin: (_ provider: SocialProvider) -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 8) {
-            ForEach(SnsProvider.allCases, id: \.self) { provider in
+            ForEach(SocialProvider.allCases, id: \.self) { provider in
                 ExampleButton(
                     title: provider.title,
                     icon: provider.icon,
-                    backgroundColor: AppColor.snsButtonBackground,
-                    textColor: .black,
-                    borderColor: AppColor.borderPrimary,
+                    backgroundColor: AppColor.socialButtonBackground,
+                    textColor: AppColor.socialColor,
+                    borderColor: AppColor.socialButtonStroke,
                     horizontalPadding: 20,
                     minHeight: 36,
                     maxHeight: 36
                 ) {
-                    onSnsLogin(provider)
+                    onSocialLogin(provider)
                 }
             }
         }
@@ -34,6 +34,6 @@ struct SocialLoginButtonsView: View {
 
 #Preview {
     SocialLoginButtonsView { provider in
-        print("SNS Login: \(provider)")
+        print("Social Login: \(provider)")
     }
 }

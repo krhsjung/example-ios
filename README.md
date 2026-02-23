@@ -16,7 +16,7 @@ SwiftUI 기반 iOS 인증 애플리케이션입니다. Clean Architecture와 MVV
 | 보안      | Keychain Services, CryptoKit, SSL Pinning     |
 | 인증      | AuthenticationServices (OAuth, Apple Sign In) |
 | 로깅      | os.log                                        |
-| 다국어    | xcstrings (73개 키)                           |
+| 다국어    | xcstrings (79개 키)                           |
 
 ---
 
@@ -28,6 +28,13 @@ example/
 │   └── exampleApp.swift
 │
 ├── Core/                           # 인프라 계층
+│   ├── Cache/                        # 오프라인 캐시
+│   │   ├── CachedUser.swift          # SwiftData 사용자 모델
+│   │   └── CacheManager.swift        # 캐시 CRUD 매니저
+│   │
+│   ├── DI/
+│   │   └── ServiceContainer.swift # 의존성 주입 컨테이너
+│   │
 │   ├── Networking/                 # 네트워크 통신
 │   │   ├── NetworkManager.swift    # URLSession + 재시도 + SSL 피닝
 │   │   ├── APIEndpoint.swift       # API 설정 및 엔드포인트
@@ -53,19 +60,22 @@ example/
 │   │   └── AuthManager.swift       # 인증 상태 관리 (@Observable)
 │   │
 │   ├── Models/
+│   │   ├── ValidationResult.swift
 │   │   └── Auth/
 │   │       ├── User.swift
 │   │       ├── AuthValidator.swift     # 입력 유효성 검사
-│   │       ├── AuthProvider.swift      # SNS 제공자 열거형
+│   │       ├── AuthProvider.swift      # 소셜 로그인 제공자 열거형
 │   │       ├── AuthRequests.swift      # 요청/응답 모델
-│   │       ├── AuthFormData.swift      # 폼 데이터 + 검증
-│   │       └── ValidationResult.swift
+│   │       └── AuthFormData.swift      # 폼 데이터 + 검증
 │   │
 │   └── Services/
 │       └── Auth/
 │           └── AuthService.swift   # 인증 API 서비스
 │
 ├── Presentation/                   # UI 계층
+│   ├── Navigation/
+│   │   └── Router.swift              # NavigationPath 기반 타입 안전 라우터
+│   │
 │   ├── ViewModels/
 │   │   └── Auth/
 │   │       ├── BaseAuthViewModel.swift # 공통 인증 로직
@@ -87,22 +97,23 @@ example/
 │       │   │   ├── ExampleCheckbox.swift
 │       │   │   ├── ExampleErrorAlert.swift
 │       │   │   ├── ExampleLoadingOverlay.swift
-│       │   │   └── ExampleDividerWithText.swift
-│       │   ├── Auth/
-│       │   │   └── SocialLoginButtonsView.swift
-│       │   └── Layout/
-│       │       └── ExamplePageLayout.swift
+│       │   │   ├── ExampleDividerWithText.swift
+│       │   │   └── ExampleThemeToggle.swift    # 라이트/다크 모드 전환
+│       │   └── Auth/
+│       │       ├── AuthInputField.swift        # 인증 입력 필드 공통 컴포넌트
+│       │       └── SocialLoginButtonsView.swift
 │       │
 │       └── Extensions/
-│           └── Color.swift         # Asset Catalog 색상 확장
+│           ├── Color.swift                 # Asset Catalog 색상 확장
+│           └── UIApplication+Keyboard.swift # 키보드 dismiss 유틸리티
 │
 └── Resources/
     ├── Assets.xcassets/            # 이미지, 색상, 앱 아이콘
     └── Localization/
-        ├── Auth.xcstrings          # 인증 관련 (13키)
-        ├── Common.xcstrings        # 공통 (20키)
-        ├── Error.xcstrings         # 에러 메시지 (33키)
-        └── ServerError.xcstrings   # 서버 에러 (7키)
+        ├── Auth.xcstrings          # 인증 관련 (16키)
+        ├── Common.xcstrings        # 공통 (23키)
+        ├── Error.xcstrings         # 에러 메시지 (32키)
+        └── ServerError.xcstrings   # 서버 에러 (8키)
 ```
 
 ---
@@ -118,6 +129,7 @@ example/
 | Google OAuth             | ASWebAuthenticationSession 기반 웹 OAuth   |
 | Apple Sign In (네이티브) | ASAuthorizationAppleIDProvider + 생체 인증 |
 | Apple Sign In (웹)       | ASWebAuthenticationSession 기반            |
+| JWT 토큰 관리            | Access/Refresh 토큰 + 401 시 자동 갱신     |
 | 세션 관리                | 앱 활성화 시 자동 세션 검증                |
 | 보안 로그아웃            | Keychain + 메모리 + 쿠키 일괄 삭제         |
 
@@ -178,15 +190,16 @@ authManager.checkSession()
 
 ## API 엔드포인트
 
-| 메서드 | 경로                 | 설명                       |
-| ------ | -------------------- | -------------------------- |
-| POST   | `/auth/login`        | 이메일/비밀번호 로그인     |
-| POST   | `/user`              | 회원가입                   |
-| POST   | `/auth/exchange`     | OAuth 토큰 교환            |
-| POST   | `/auth/apple/native` | Apple Sign In              |
-| POST   | `/auth/logout`       | 로그아웃                   |
-| GET    | `/auth/me`           | 세션 검증 + 사용자 정보    |
-| GET    | `/auth/{provider}`   | OAuth 시작 (google, apple) |
+| 메서드 | 경로                    | 설명                       |
+| ------ | ----------------------- | -------------------------- |
+| POST   | `/auth/login/mobile`    | 이메일/비밀번호 로그인     |
+| POST   | `/auth/register/mobile` | 회원가입                   |
+| POST   | `/auth/exchange`        | OAuth 토큰 교환            |
+| POST   | `/auth/apple/native`    | Apple Sign In              |
+| POST   | `/auth/refresh`         | JWT 토큰 갱신              |
+| POST   | `/auth/logout`          | 로그아웃                   |
+| GET    | `/auth/me`              | 세션 검증 + 사용자 정보    |
+| GET    | `/auth/{provider}`      | OAuth 시작 (google, apple) |
 
 ---
 
@@ -198,18 +211,18 @@ authManager.checkSession()
 
 ### 아키텍처
 
-- [ ] DI 컨테이너 구현 (ServiceContainer)
-- [ ] 타입 안전 네비게이션 (NavigationPath)
+- [x] DI 컨테이너 구현 (ServiceContainer)
+- [x] 타입 안전 네비게이션 (NavigationPath)
 
 ### UX
 
-- [ ] 입력 필드 실시간 유효성 검사 UI (에러 테두리, 인라인 메시지)
-- [ ] 에러 복구 옵션 추가 (재시도 메커니즘)
+- [x] 입력 필드 실시간 유효성 검사 UI (에러 테두리, 인라인 메시지)
+- [x] 에러 복구 옵션 추가 (재시도 메커니즘)
 
 ### 네트워크
 
-- [ ] 중복 요청 방지 (Request coalescing)
-- [ ] 오프라인 지원 (SwiftData 캐싱)
+- [x] 중복 요청 방지 (Request coalescing)
+- [x] 오프라인 지원 (SwiftData 캐싱)
 
 ### 테스트
 

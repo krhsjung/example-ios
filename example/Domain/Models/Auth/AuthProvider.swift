@@ -8,39 +8,20 @@
 
 import Foundation
 
-// MARK: - SNS Provider
-/// SNS 로그인 제공자
-enum SnsProvider: String, Codable, CaseIterable {
+// MARK: - Social Provider
+/// 소셜 로그인 제공자
+enum SocialProvider: String, Codable, CaseIterable, Sendable {
+    /// Google OAuth (ASWebAuthenticationSession 기반 웹 인증)
     case google = "google"
+    /// Apple Sign In (ASWebAuthenticationSession 기반 웹 인증)
     case apple = "apple"
+    /// Apple Sign In (ASAuthorizationAppleIDProvider 기반 네이티브 인증, Face ID/Touch ID 연동)
     case native = "native"
-
-    /// 버튼에 표시될 제목
-    var title: String {
-        switch self {
-        case .google:
-            return Localized.Auth.oauthGoogle
-        case .apple:
-            return Localized.Auth.oauthApple
-        case .native:
-            return Localized.Auth.oauthApple + "(native)"
-        }
-    }
-
-    /// 버튼 아이콘 이름
-    var icon: String {
-        switch self {
-        case .google:
-            return "google"
-        case .apple, .native:
-            return "apple"
-        }
-    }
 }
 
 // MARK: - Login Provider
-/// 로그인 제공자 (이메일 + SNS)
-enum LoginProvider: String, Codable {
+/// 로그인 제공자 (이메일 + 소셜)
+enum LoginProvider: String, Codable, Sendable {
     case email = "email"
     case google = "google"
     case apple = "apple"
