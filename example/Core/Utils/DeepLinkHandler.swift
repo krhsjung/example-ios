@@ -9,8 +9,8 @@ import Foundation
 
 /// 딥링크 목적지
 enum DeepLinkTarget: Equatable {
-    /// 회원가입 화면
-    case signup
+    /// 회원가입 화면 (이메일 사전 입력 가능)
+    case signup(email: String? = nil)
 }
 
 /// 딥링크 URL을 파싱하여 앱 내 네비게이션 목적지로 변환
@@ -25,25 +25,28 @@ struct DeepLinkHandler {
     /// - Parameter url: 처리할 URL
     /// - Returns: 매칭되는 딥링크 목적지, 없으면 nil
     static func handle(_ url: URL) -> DeepLinkTarget? {
-        // Universal Link: https://domain.com/link/signup
+        let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems
+        let email = queryItems?.first(where: { $0.name == "email" })?.value
+
+        // Universal Link: https://domain.com/link/signup?email=...
         if url.scheme == "https" || url.scheme == "http" {
             let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            return resolve(path: path.replacingOccurrences(of: "link/", with: ""))
+            return resolve(path: path.replacingOccurrences(of: "link/", with: ""), email: email)
         }
 
-        // Custom Scheme: example://signup
+        // Custom Scheme: example://signup?email=...
         if let host = url.host() {
-            return resolve(path: host)
+            return resolve(path: host, email: email)
         }
 
         return nil
     }
 
     /// 경로 문자열을 딥링크 목적지로 변환
-    private static func resolve(path: String) -> DeepLinkTarget? {
+    private static func resolve(path: String, email: String? = nil) -> DeepLinkTarget? {
         switch path {
         case "signup":
-            return .signup
+            return .signup(email: email)
         default:
             return nil
         }

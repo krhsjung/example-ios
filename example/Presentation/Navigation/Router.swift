@@ -12,7 +12,7 @@ import Observation
 // MARK: - Auth Route
 /// 인증 플로우의 네비게이션 목적지
 enum AuthRoute: Hashable {
-    case signUp
+    case signUp(email: String? = nil)
 }
 
 // MARK: - Router

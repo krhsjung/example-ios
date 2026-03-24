@@ -15,6 +15,9 @@ struct SignUpView: View {
     @State private var viewModel = SignUpViewModel()
     private var router = ServiceContainer.shared.router
 
+    /// 딥링크에서 전달받은 이메일 (사전 입력용)
+    var prefillEmail: String? = nil
+
     var body: some View {
         VStack(alignment: .leading, spacing: AppDimension.Spacing.section) {
             TitleSection()
@@ -45,6 +48,11 @@ struct SignUpView: View {
             onRetry: viewModel.retryLastAction,
             onDismiss: viewModel.clearError
         )
+        .onAppear {
+            if let prefillEmail, !prefillEmail.isEmpty {
+                viewModel.email = prefillEmail
+            }
+        }
         .onDisappear {
             viewModel.cancelCurrentTask()
         }

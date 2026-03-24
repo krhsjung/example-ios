@@ -34,8 +34,8 @@ struct exampleApp: App {
                         LogInView()
                             .navigationDestination(for: AuthRoute.self) { route in
                                 switch route {
-                                case .signUp:
-                                    SignUpView()
+                                case .signUp(let email):
+                                    SignUpView(prefillEmail: email)
                                 }
                             }
                     }
@@ -52,8 +52,9 @@ struct exampleApp: App {
             }
             .onOpenURL { url in
                 Log.info("Deep link received: \(url)")
-                if let target = DeepLinkHandler.handle(url), target == .signup {
-                    router.navigate(to: .signUp)
+                if let target = DeepLinkHandler.handle(url),
+                   case .signup(let email) = target {
+                    router.navigate(to: .signUp(email: email))
                 }
             }
         }
