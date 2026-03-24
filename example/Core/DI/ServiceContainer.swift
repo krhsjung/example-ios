@@ -57,6 +57,9 @@ final class ServiceContainer {
     /// 오프라인 캐시 매니저
     nonisolated let cacheManager: CacheManager
 
+    /// 네트워크 상태 모니터
+    nonisolated let networkMonitor: NetworkMonitor
+
     // MARK: - Domain Layer
 
     /// 인증 API 서비스
@@ -82,6 +85,7 @@ final class ServiceContainer {
         cacheManager = CacheManager()
 
         // 2. Core 계층
+        networkMonitor = NetworkMonitor()
         cookieStorage = SecureCookieStorage(keychain: keychain)
         networkManager = NetworkManager(
             secureCookieStorage: cookieStorage,

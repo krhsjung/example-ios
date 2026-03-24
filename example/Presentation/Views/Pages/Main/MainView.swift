@@ -10,22 +10,49 @@ import SwiftUI
 
 struct MainView: View {
     @State private var selectedTab: Int = 0
+    private var networkMonitor = ServiceContainer.shared.networkMonitor
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            FirstTabView()
-                .tabItem {
-                    Image(systemName: "house.fill")
-                    Text("First")
-                }
-                .tag(0)
+        VStack(spacing: 0) {
+            NetworkUnavailableBanner(isVisible: !networkMonitor.isNetworkAvailable)
 
-            SecondTabView()
-                .tabItem {
-                    Image(systemName: "person.fill")
-                    Text("Second")
-                }
-                .tag(1)
+            TabView(selection: $selectedTab) {
+                FirstTabView()
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                        Text("First")
+                    }
+                    .tag(0)
+
+                SecondTabView()
+                    .tabItem {
+                        Image(systemName: "person.fill")
+                        Text("Second")
+                    }
+                    .tag(1)
+            }
+        }
+    }
+}
+
+// MARK: - Network Unavailable Banner
+private struct NetworkUnavailableBanner: View {
+    let isVisible: Bool
+
+    var body: some View {
+        if isVisible {
+            HStack(spacing: 8) {
+                Image(systemName: "wifi.slash")
+                    .font(.caption)
+                Text(Localized.Common.networkUnavailable)
+                    .font(.caption)
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(.red.opacity(0.85))
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.3), value: isVisible)
         }
     }
 }
