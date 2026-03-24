@@ -50,6 +50,12 @@ struct exampleApp: App {
                     router.resetAuthPath()
                 }
             }
+            .onOpenURL { url in
+                Log.info("Deep link received: \(url)")
+                if let target = DeepLinkHandler.handle(url), target == .signup {
+                    router.navigate(to: .signUp)
+                }
+            }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             switch newPhase {
