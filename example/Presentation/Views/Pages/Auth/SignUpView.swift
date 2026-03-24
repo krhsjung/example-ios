@@ -16,7 +16,7 @@ struct SignUpView: View {
     private var router = ServiceContainer.shared.router
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: AppDimension.Spacing.section) {
             TitleSection()
             CredentialsSection(viewModel: viewModel)
             ExampleDividerWithText(text: Localized.Auth.signupContinueWith)
@@ -28,8 +28,8 @@ struct SignUpView: View {
                 router.goBack()
             }
         }
-        .frame(maxWidth: 450, maxHeight: .infinity)
-        .padding(.horizontal, 20)
+        .frame(maxWidth: AppDimension.Screen.maxWidth, maxHeight: .infinity)
+        .padding(.horizontal, AppDimension.Screen.horizontalPadding)
         // 입력 필드 외부 탭 시 키보드 내리기
         .contentShape(Rectangle())
         .onTapGesture {
@@ -56,14 +56,14 @@ struct SignUpView: View {
 /// 앱 이름과 회원가입 부제목을 표시하는 상단 타이틀 영역
 private struct TitleSection: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppDimension.Spacing.inner) {
             Text(Localized.Common.applicationName)
-                .font(.system(size: 30))
+                .font(.system(size: AppDimension.FontSize.title))
                 .fontWeight(.bold)
                 .foregroundStyle(AppColor.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .center)
             Text(Localized.Auth.signupSubtitle)
-                .font(.system(size: 16))
+                .font(.system(size: AppDimension.FontSize.subtitle))
                 .foregroundStyle(AppColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
@@ -89,12 +89,24 @@ private struct CredentialsSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppDimension.Spacing.field) {
+            AuthInputField(
+                label: Localized.Common.name,
+                placeholder: Localized.Auth.placeholderName,
+                text: $viewModel.name,
+                error: viewModel.nameError,
+                leadingIcon: "person",
+                focusedField: $focusedField,
+                fieldValue: .name,
+                onClearError: viewModel.clearNameError
+            )
+
             AuthInputField(
                 label: Localized.Common.email,
                 placeholder: Localized.Auth.placeholderEmail,
                 text: $viewModel.email,
                 error: viewModel.emailError,
+                leadingIcon: "envelope",
                 focusedField: $focusedField,
                 fieldValue: .email,
                 onClearError: viewModel.clearEmailError
@@ -106,6 +118,7 @@ private struct CredentialsSection: View {
                 text: $viewModel.password,
                 isSecure: true,
                 error: viewModel.passwordError,
+                leadingIcon: "lock",
                 focusedField: $focusedField,
                 fieldValue: .password,
                 onClearError: viewModel.clearPasswordError
@@ -117,29 +130,20 @@ private struct CredentialsSection: View {
                 text: $viewModel.confirmPassword,
                 isSecure: true,
                 error: viewModel.confirmPasswordError,
+                leadingIcon: "lock",
                 focusedField: $focusedField,
                 fieldValue: .confirmPassword,
                 onClearError: viewModel.clearConfirmPasswordError
             )
 
-            AuthInputField(
-                label: Localized.Auth.placeholderName,
-                placeholder: Localized.Auth.placeholderName,
-                text: $viewModel.name,
-                error: viewModel.nameError,
-                focusedField: $focusedField,
-                fieldValue: .name,
-                onClearError: viewModel.clearNameError
-            )
-
             // 이용약관 동의 체크박스
-            // "이용약관" 과 "개인정보처리방침"은 linkTextColor로 강조
+            // "이용약관" 과 "개인정보처리방침"은 linkText로 강조
             ExampleCheckbox(isChecked: $viewModel.isAgreeToTerms) {
-                (Text(Localized.Auth.signupTermsOfService).foregroundStyle(AppColor.linkTextColor)
+                (Text(Localized.Auth.signupTermsOfService).foregroundStyle(AppColor.linkText)
                 + Text(Localized.Auth.signupAnd)
-                + Text(Localized.Auth.signupPrivacyPolicy).foregroundStyle(AppColor.linkTextColor)
+                + Text(Localized.Auth.signupPrivacyPolicy).foregroundStyle(AppColor.linkText)
                 + Text(Localized.Auth.signupAgreeSuffix))
-                    .font(.system(size: 13))
+                    .font(.system(size: AppDimension.FontSize.text))
                     .foregroundStyle(AppColor.textSecondary)
             }
 
@@ -171,8 +175,9 @@ private struct LogInSection: View {
 
     var body: some View {
         Text(Localized.Common.login)
-            .font(Font.footnote.bold())
-            .foregroundStyle(AppColor.linkTextColor)
+            .font(.system(size: AppDimension.FontSize.text))
+            .fontWeight(.medium)
+            .foregroundStyle(AppColor.linkText)
             .frame(maxWidth: .infinity, alignment: .center)
             .onTapGesture {
                 onLogIn()

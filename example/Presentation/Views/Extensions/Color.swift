@@ -17,11 +17,11 @@ enum AppColor {
     // Text Colors
     static let textPrimary = Color("TextPrimary")
     static let textSecondary = Color("TextSecondary")
-    static let linkTextColor = Color("LinkTextColor")
+    static let linkText = Color("LinkTextColor")
     
     // Button Colors
-    static let primaryButtonBackground = Color("PrimaryButtonBackground")
-    static let buttonTextColor = Color("ButtonTextColor")
+    static let buttonBackground = Color("PrimaryButtonBackground")
+    static let buttonText = Color("ButtonTextColor")
     
     // Social Button Colors
     static let socialButtonBackground = Color("SocialButtonBackground")
@@ -29,7 +29,7 @@ enum AppColor {
     static let socialColor = Color("SocialColor")
 
     // Checkbox Colors
-    static let checkboxColor = Color("CheckboxColor")
+    static let checkboxChecked = Color("CheckboxColor")
 
     // Brand Colors
     static let brand = Color("Brand")
@@ -43,6 +43,7 @@ enum AppColor {
     // Input Box Colors
     static let inputBoxBackground = Color("InputBoxBackground")
     static let placeholderColor = Color("PlaceholderColor")
+    static let inputIconColor = Color("InputIconColor")
 
     // Error Colors
     static let error = Color("ErrorColor")

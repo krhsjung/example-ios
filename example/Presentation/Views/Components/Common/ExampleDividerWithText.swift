@@ -14,28 +14,29 @@ struct ExampleDividerWithText: View {
     let textColor: Color
     let lineColor: Color
     let lineHeight: CGFloat
-    
+
     init(
         text: String,
         textColor: Color = AppColor.textSecondary,
         lineColor: Color = AppColor.dividerLine,
-        lineHeight: CGFloat = 1.5
+        lineHeight: CGFloat = AppDimension.Divider.lineHeight
     ) {
         self.text = text
         self.textColor = textColor
         self.lineColor = lineColor
         self.lineHeight = lineHeight
     }
-    
+
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .center, spacing: AppDimension.Spacing.inner) {
             Rectangle()
                 .fill(lineColor)
                 .frame(maxWidth: .infinity, minHeight: lineHeight, maxHeight: lineHeight)
 
             Text(text)
-                .font(.system(size: 12))
+                .font(.system(size: AppDimension.FontSize.text))
                 .foregroundStyle(textColor)
+                .fixedSize(horizontal: true, vertical: false)
 
             Rectangle()
                 .fill(lineColor)

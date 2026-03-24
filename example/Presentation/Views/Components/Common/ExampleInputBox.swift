@@ -14,12 +14,20 @@ struct ExampleInputBox: View {
     var isSecure: Bool = false
     /// 에러 상태 (true이면 빨간 border 표시)
     var hasError: Bool = false
+    var leadingIcon: String? = nil
 
     /// 비밀번호 표시/숨김 토글 상태
     @State private var isPasswordVisible = false
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: AppDimension.Spacing.inner) {
+            if let leadingIcon {
+                Image(systemName: leadingIcon)
+                    .font(.system(size: AppDimension.FontSize.text))
+                    .foregroundStyle(AppColor.inputIconColor)
+                    .frame(width: AppDimension.Icon.size, height: AppDimension.Icon.size)
+            }
+
             Group {
                 if isSecure {
                     SecureTextField(
@@ -29,7 +37,7 @@ struct ExampleInputBox: View {
                     )
                 } else {
                     TextField(placeholder, text: $text)
-                        .font(.system(size: 15))
+                        .font(.system(size: AppDimension.FontSize.text))
                         .foregroundStyle(AppColor.textPrimary)
                 }
             }
@@ -42,22 +50,22 @@ struct ExampleInputBox: View {
                     isPasswordVisible.toggle()
                 } label: {
                     Image(systemName: isPasswordVisible ? "eye" : "eye.slash")
-                        .font(.system(size: 14))
+                        .font(.system(size: AppDimension.FontSize.text))
                         .foregroundStyle(AppColor.placeholderColor)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .frame(height: 20)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .frame(height: AppDimension.Input.contentHeight)
+        .padding(.horizontal, AppDimension.Input.horizontalPadding)
+        .padding(.vertical, AppDimension.Input.verticalPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(AppColor.inputBoxBackground)
-        .cornerRadius(8)
+        .cornerRadius(AppDimension.CornerRadius.medium)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .inset(by: 0.75)
-                .stroke(hasError ? AppColor.error : Color.clear, lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: AppDimension.CornerRadius.medium)
+                .inset(by: AppDimension.Border.inset)
+                .stroke(hasError ? AppColor.error : Color.clear, lineWidth: AppDimension.Border.width)
         )
     }
 }
@@ -74,7 +82,7 @@ struct SecureTextField: UIViewRepresentable {
         textField.delegate = context.coordinator
         textField.autocorrectionType = .no
         textField.autocapitalizationType = .none
-        textField.font = .systemFont(ofSize: 15)
+        textField.font = .systemFont(ofSize: AppDimension.FontSize.text)
         textField.textColor = UIColor(named: "TextPrimary") ?? .label
         textField.borderStyle = .none
 

@@ -20,7 +20,7 @@ struct ExampleCheckbox<Label: View>: View {
                 Image(systemName: isChecked ? "checkmark.square.fill" : "square")
                     .resizable()
                     .frame(width: 16, height: 16)
-                    .foregroundStyle(AppColor.checkboxColor)
+                    .foregroundStyle(AppColor.checkboxChecked)
             }
 
             label()

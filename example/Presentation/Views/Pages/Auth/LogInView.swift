@@ -16,7 +16,7 @@ struct LogInView: View {
     private var router = ServiceContainer.shared.router
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: AppDimension.Spacing.section) {
             TitleSection()
             CredentialsSection(viewModel: viewModel)
             ExampleDividerWithText(text: Localized.Auth.loginContinueWith)
@@ -27,8 +27,8 @@ struct LogInView: View {
                 router.navigate(to: .signUp)
             }
         }
-        .frame(maxWidth: 450, maxHeight: .infinity)
-        .padding(.horizontal, 20)
+        .frame(maxWidth: AppDimension.Screen.maxWidth, maxHeight: .infinity)
+        .padding(.horizontal, AppDimension.Screen.horizontalPadding)
         // 입력 필드 외부 탭 시 키보드 내리기
         .contentShape(Rectangle())
         .onTapGesture {
@@ -50,7 +50,7 @@ struct LogInView: View {
         .pageBackground()
         .overlay(alignment: .topTrailing) {
             ExampleThemeToggle()
-                .padding(.trailing, 20)
+                .padding(.trailing, AppDimension.Screen.horizontalPadding)
         }
     }
 }
@@ -59,14 +59,14 @@ struct LogInView: View {
 /// 앱 이름과 로그인 부제목을 표시하는 상단 타이틀 영역
 private struct TitleSection: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppDimension.Spacing.inner) {
             Text(Localized.Common.applicationName)
-                .font(.system(size: 30))
+                .font(.system(size: AppDimension.FontSize.title))
                 .fontWeight(.bold)
                 .foregroundStyle(AppColor.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .center)
             Text(Localized.Auth.loginSubtitle)
-                .font(.system(size: 16))
+                .font(.system(size: AppDimension.FontSize.subtitle))
                 .foregroundStyle(AppColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
@@ -92,12 +92,13 @@ private struct CredentialsSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppDimension.Spacing.field) {
             AuthInputField(
                 label: Localized.Common.email,
-                placeholder: Localized.Common.email,
+                placeholder: Localized.Auth.placeholderEmail,
                 text: $viewModel.email,
                 error: viewModel.emailError,
+                leadingIcon: "envelope",
                 focusedField: $focusedField,
                 fieldValue: .email,
                 onClearError: viewModel.clearEmailError
@@ -105,18 +106,19 @@ private struct CredentialsSection: View {
 
             AuthInputField(
                 label: Localized.Common.password,
-                placeholder: Localized.Common.password,
+                placeholder: Localized.Auth.placeholderPassword,
                 text: $viewModel.password,
                 isSecure: true,
                 error: viewModel.passwordError,
+                leadingIcon: "lock",
                 focusedField: $focusedField,
                 fieldValue: .password,
                 onClearError: viewModel.clearPasswordError
             )
-            
+
             Text(Localized.Auth.loginForgetPassword)
-              .font(.system(size: 14))
-              .foregroundStyle(AppColor.linkTextColor)
+              .font(.system(size: AppDimension.FontSize.text))
+              .foregroundStyle(AppColor.linkText)
               .frame(maxWidth: .infinity, alignment: .trailing)
 
             // resignFirstResponder를 UIKit 경로로 호출하여
@@ -146,13 +148,15 @@ private struct SignUpSection: View {
     let onSignUp: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .center, spacing: AppDimension.Spacing.inner) {
             Text(Localized.Auth.loginNoAccount)
-                .font(Font.footnote.bold())
+                .font(.system(size: AppDimension.FontSize.text))
+                .foregroundStyle(AppColor.textSecondary)
 
             Text(Localized.Common.signup)
-                .font(Font.footnote.bold())
-                .foregroundStyle(AppColor.linkTextColor)
+                .font(.system(size: AppDimension.FontSize.text))
+                .fontWeight(.medium)
+                .foregroundStyle(AppColor.linkText)
                 .onTapGesture {
                     onSignUp()
                 }

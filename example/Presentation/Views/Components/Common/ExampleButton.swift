@@ -11,14 +11,14 @@ import SwiftUI
 struct ExampleButton: View {
     let title: String
     var icon: String? = nil
-    var iconSpacing: CGFloat = 10
-    var backgroundColor: Color = AppColor.primaryButtonBackground
-    var textColor: Color = AppColor.buttonTextColor
+    var iconSpacing: CGFloat = AppDimension.Button.spacing
+    var backgroundColor: Color = AppColor.buttonBackground
+    var textColor: Color = AppColor.buttonText
     var borderColor: Color? = nil
-    var borderWidth: CGFloat = 1.5
-    var cornerRadius: CGFloat = 8
-    var horizontalPadding: CGFloat = 18
-    var verticalPadding: CGFloat = 8
+    var borderWidth: CGFloat = AppDimension.Border.width
+    var cornerRadius: CGFloat = AppDimension.CornerRadius.medium
+    var horizontalPadding: CGFloat = AppDimension.Button.horizontalPadding
+    var verticalPadding: CGFloat = AppDimension.Button.verticalPadding
     var minHeight: CGFloat? = nil
     var maxHeight: CGFloat? = nil
     let action: () -> Void
@@ -30,12 +30,12 @@ struct ExampleButton: View {
             HStack(alignment: .center, spacing: icon != nil ? iconSpacing : 0) {
                 if let icon = icon {
                     Image(icon)
-                        .frame(width: 20, height: 20)
+                        .frame(width: AppDimension.Icon.size, height: AppDimension.Icon.size)
                 }
-                
+
                 Text(title)
-                    .font(.system(size: 15))
-                    .fontWeight(.bold)
+                    .font(.system(size: AppDimension.FontSize.text))
+                    .fontWeight(.medium)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(textColor)
             }
@@ -53,7 +53,7 @@ struct ExampleButton: View {
                 Group {
                     if let borderColor = borderColor {
                         RoundedRectangle(cornerRadius: cornerRadius)
-                            .inset(by: 0.75)
+                            .inset(by: AppDimension.Border.inset)
                             .stroke(borderColor, lineWidth: borderWidth)
                     }
                 }
@@ -69,12 +69,12 @@ struct ExampleButton: View {
         ExampleButton(title: "login") {
             print("Log In tapped")
         }
-        
+
         // 기본 회원가입 버튼 (trailing closure)
         ExampleButton(title: "Sign Up") {
             print("Sign Up tapped")
         }
-        
+
         // Google 소셜 버튼 (trailing closure)
         ExampleButton(
             title: "Continue with Google",
@@ -83,8 +83,8 @@ struct ExampleButton: View {
             textColor: .black,
             borderColor: AppColor.socialButtonStroke,
             horizontalPadding: 20,
-            minHeight: 36,
-            maxHeight: 36
+            minHeight: AppDimension.Button.height,
+            maxHeight: AppDimension.Button.height
         ) {
             print("Google login tapped")
         }
@@ -97,12 +97,12 @@ struct ExampleButton: View {
             textColor: .black,
             borderColor: AppColor.socialButtonStroke,
             horizontalPadding: 20,
-            minHeight: 36,
-            maxHeight: 36
+            minHeight: AppDimension.Button.height,
+            maxHeight: AppDimension.Button.height
         ) {
             print("Apple login tapped")
         }
-        
+
         // 커스텀 색상 버튼 (trailing closure)
         ExampleButton(
             title: "Custom Color",

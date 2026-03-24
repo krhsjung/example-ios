@@ -20,20 +20,23 @@ struct AuthInputField<FocusValue: Hashable>: View {
     @Binding var text: String
     var isSecure: Bool = false
     var error: String?
+    var leadingIcon: String? = nil
     var focusedField: FocusState<FocusValue?>.Binding
     var fieldValue: FocusValue
     var onClearError: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppDimension.Spacing.inner) {
             Text(label)
-                .font(Font.caption.bold())
+                .font(.system(size: AppDimension.FontSize.text))
+                .fontWeight(.medium)
                 .foregroundStyle(AppColor.textPrimary)
             ExampleInputBox(
                 placeholder: placeholder,
                 text: $text,
                 isSecure: isSecure,
-                hasError: error != nil
+                hasError: error != nil,
+                leadingIcon: leadingIcon
             )
             .focused(focusedField, equals: fieldValue)
             .onChange(of: text) {
@@ -41,7 +44,7 @@ struct AuthInputField<FocusValue: Hashable>: View {
             }
             if let error = error {
                 Text(error)
-                    .font(.system(size: 14))
+                    .font(.system(size: AppDimension.FontSize.text))
                     .foregroundStyle(AppColor.error)
             }
         }
